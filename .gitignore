@@ -1,0 +1,8 @@
+/bin/
+/target/
+/.settings/
+*.log
+*.trc
+*.jco*
+/.classpath
+/.project
