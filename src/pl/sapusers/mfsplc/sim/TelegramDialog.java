@@ -72,12 +72,15 @@ public class TelegramDialog extends JDialog {
 
 		Integer PADDING = 6;
 		Component topAnchor = null;
-
+		int offset = 1;
+		
 		while (fieldsIterator.hasNextField()) {
 
 			JCoRecordField field = fieldsIterator.nextRecordField();
 
-			JLabel label = new JLabel(field.getDescription(), JLabel.TRAILING);
+			JLabel label = new JLabel(field.getDescription() + " [" + String.format("%03d", offset) + "-"
+					+ String.format("%03d", offset + field.getLength() - 1) + "]", JLabel.TRAILING);
+			offset = offset + field.getLength();
 			p.add(label);
 
 			if (topAnchor == null) {
