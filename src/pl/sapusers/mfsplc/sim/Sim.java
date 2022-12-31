@@ -48,7 +48,6 @@ import com.sap.conn.jco.JCoRecordMetaData;
 import com.sap.conn.jco.JCoStructure;
 
 import pl.sapusers.mfsplc.bridge.JFieldTextValidator;
-import java.awt.Dimension;
 
 @SuppressWarnings("serial")
 public class Sim extends JFrame {
