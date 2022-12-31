@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -28,7 +29,10 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
+import javax.swing.text.Utilities;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,19 +50,74 @@ public class Sim extends JFrame {
 	private Logger logger = LogManager.getLogger(Sim.class.getName());
 
 // Configuration
+	private Properties configuration;
 	private String handshakeRequest;
 	private String handshakeConfirmation;
 	private boolean switchSenderReceiver;
 	private JCoRecordMetaData telegramMetadata;
 
 	private TcpServer server;
-	private JTextPane textArea;
+	private TelegramsLog textArea;
 	private JToggleButton tglbtnLife;
 	private JTextField textPort;
 	private JToggleButton tglAutoHandshake;
 	private JButton btnSend;
 
-	class MfsProcessor implements Runnable {
+	class TelegramsLog extends JTextPane {
+		private JCoRecordMetaData telegramMetadata;
+
+		public TelegramsLog(Properties config, JCoRecordMetaData telegramMetadata) {
+			super();
+			this.telegramMetadata = telegramMetadata;
+
+			Set<String> propertyKeys = config.stringPropertyNames();
+
+			for (String propertyKey : propertyKeys) {
+				if (propertyKey.contains("Style")) {
+					String styleName = propertyKey.substring(6);
+					String[] styleParts = config.getProperty(propertyKey).split(",");
+
+					Style style = this.addStyle(styleName, null);
+					StyleConstants.setForeground(style, new Color(Integer.parseInt(styleParts[0]),
+							Integer.parseInt(styleParts[1]), Integer.parseInt(styleParts[2])));
+
+					if (styleParts.length == 4) {
+						if (styleParts[3].contains("I"))
+							StyleConstants.setItalic(style, true);
+						if (styleParts[3].contains("B"))
+							StyleConstants.setBold(style, true);
+						if (styleParts[3].contains("U"))
+							StyleConstants.setUnderline(style, true);
+						if (styleParts[3].contains("S"))
+							StyleConstants.setStrikeThrough(style, true);
+					}
+				}
+			}
+		}
+
+		public void addTelegram(String message) {
+			JCoStructure telegram = JCo.createStructure(telegramMetadata);
+			telegram.setString(message);
+			addTelegram(telegram);
+		}
+
+		public void addTelegram(JCoStructure telegram) {
+
+			Style style;
+			style = this.getStyle(telegram.getString("TELETYPE") + "-" + telegram.getString("HANDSHAKE"));
+			if (style == null)
+				style = this.getStyle("*-" + telegram.getString("HANDSHAKE"));
+
+			StyledDocument doc = this.getStyledDocument();
+			try {
+				doc.insertString(doc.getLength(), telegram.getString() + "\n", style);
+			} catch (BadLocationException e) {
+				logger.catching(e);
+			}
+		}
+	}
+
+	class TcpIpProcessor implements Runnable {
 
 		@Override
 		public void run() {
@@ -80,14 +139,8 @@ public class Sim extends JFrame {
 					telegram.setString(message);
 
 					if (telegram.getString("TELETYPE").equals("LIFE") && tglbtnLife.isSelected()
-							|| !telegram.getString("TELETYPE").equals("LIFE")) {
-						Document doc = textArea.getDocument();
-						try {
-							doc.insertString(doc.getLength(), message + "\n", null);
-						} catch (BadLocationException e) {
-							logger.catching(e);
-						}
-					}
+							|| !telegram.getString("TELETYPE").equals("LIFE"))
+						textArea.addTelegram(telegram);
 
 					// send acknowledge telegram if needed
 					if (telegram.getString("HANDSHAKE").equals(handshakeRequest) && tglAutoHandshake.isSelected()) {
@@ -101,14 +154,9 @@ public class Sim extends JFrame {
 						server.sendMessage(response.getString());
 
 						if (response.getString("TELETYPE").equals("LIFE") && tglbtnLife.isSelected()
-								|| !response.getString("TELETYPE").equals("LIFE")) {
-							Document doc = textArea.getDocument();
-							try {
-								doc.insertString(doc.getLength(), response.getString() + "\n", null);
-							} catch (BadLocationException e) {
-								logger.catching(e);
-							}
-						}
+								|| !response.getString("TELETYPE").equals("LIFE"))
+							textArea.addTelegram(response);
+
 					}
 				}
 			}
@@ -125,10 +173,10 @@ public class Sim extends JFrame {
 
 	private void loadConfiguration(String destination, String configProperties) {
 		// Load configuration from properties file
-		Properties config = new Properties();
+		configuration = new Properties();
 		logger.debug("Loading properites file: " + configProperties);
 		try (FileInputStream propertiesFile = new FileInputStream(configProperties)) {
-			config.load(propertiesFile);
+			configuration.load(propertiesFile);
 		} catch (FileNotFoundException e) {
 			logger.catching(e);
 		} catch (IOException e) {
@@ -136,21 +184,21 @@ public class Sim extends JFrame {
 		}
 
 		// Get handshake request and confirmation strings
-		handshakeRequest = config.getProperty("handshakeRequest");
+		handshakeRequest = configuration.getProperty("handshakeRequest");
 		if (handshakeRequest == null || handshakeRequest.equals(""))
 			logger.error("Handshake request not defined in the config file: " + configProperties);
 
-		handshakeConfirmation = config.getProperty("handshakeConfirmation");
+		handshakeConfirmation = configuration.getProperty("handshakeConfirmation");
 		if (handshakeConfirmation == null || handshakeConfirmation.equals(""))
 			logger.error("Handshake confirmation not defined in the config file: " + configProperties);
 
 		// Get sender / receiver switch setting
-		switchSenderReceiver = Boolean.parseBoolean(config.getProperty("switchSenderReceiver"));
+		switchSenderReceiver = Boolean.parseBoolean(configuration.getProperty("switchSenderReceiver"));
 
 		// Get JCo metadata of telegram structure
 		try {
 			telegramMetadata = JCoDestinationManager.getDestination(destination).getRepository()
-					.getStructureDefinition(config.getProperty("telegramStructure"));
+					.getStructureDefinition(configuration.getProperty("telegramStructure"));
 		} catch (JCoException e) {
 			logger.throwing(e);
 		}
@@ -169,8 +217,7 @@ public class Sim extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Sim frame = new Sim();
-					frame.loadConfiguration(args[0], args[1]);
+					Sim frame = new Sim(args[0], args[1]);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -182,7 +229,9 @@ public class Sim extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public Sim() {
+	public Sim(String destination, String configProperties) {
+		loadConfiguration(destination, configProperties);
+
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 823, 558);
 		JPanel contentPanel = new JPanel();
@@ -222,10 +271,31 @@ public class Sim extends JFrame {
 		scrollPane.setViewportBorder(
 				new TitledBorder(null, "Telegrams Log", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 		TelegramPanel.add(scrollPane, BorderLayout.CENTER);
 
-		textArea = new JTextPane();
+		textArea = new TelegramsLog(configuration, telegramMetadata);
+		textArea.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() == 2) {
+					try {
+						int line = textArea.getCaretPosition();
+						int start = Utilities.getRowStart(textArea, line);
+						int end = Utilities.getRowEnd(textArea, line);
+
+						String text = textArea.getDocument().getText(start, end - start);
+						if (!text.equals("")) {
+							JCoStructure telegram = JCo.createStructure(telegramMetadata);
+							telegram.setString(text);
+							new TelegramDialog(telegram.getRecordFieldIterator(), true, "Line: " + (line + 1));
+						}
+					} catch (BadLocationException exc) {
+						logger.catching(exc);
+					}
+				}
+			}
+		});
 		textArea.setEditable(false);
 		textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
 		scrollPane.setViewportView(textArea);
@@ -274,7 +344,7 @@ public class Sim extends JFrame {
 
 					try {
 						server = new TcpServer(Integer.parseUnsignedInt(textPort.getText()));
-						Thread thread = new Thread(new MfsProcessor());
+						Thread thread = new Thread(new TcpIpProcessor());
 						thread.setName("Telegram processor " + thread.getName());
 						thread.start();
 						textPort.setEditable(false);
@@ -307,14 +377,7 @@ public class Sim extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				if (!textTelegram.getText().equals("")) {
 					server.sendMessage(textTelegram.getText());
-
-					Document doc = textArea.getDocument();
-					try {
-						doc.insertString(doc.getLength(), textTelegram.getText() + "\n", null);
-					} catch (BadLocationException exc) {
-						logger.catching(exc);
-					}
-
+					textArea.addTelegram(textTelegram.getText());
 					textTelegram.setText("");
 				}
 			}
