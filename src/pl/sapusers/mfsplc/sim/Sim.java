@@ -20,6 +20,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
@@ -28,7 +29,10 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -44,6 +48,7 @@ import com.sap.conn.jco.JCoRecordMetaData;
 import com.sap.conn.jco.JCoStructure;
 
 import pl.sapusers.mfsplc.bridge.JFieldTextValidator;
+import java.awt.Dimension;
 
 @SuppressWarnings("serial")
 public class Sim extends JFrame {
@@ -268,27 +273,30 @@ public class Sim extends JFrame {
 		textTelegram.setColumns(100);
 
 		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setAlignmentX(0.0f);
+		scrollPane.setAlignmentY(0.0f);
 		scrollPane.setViewportBorder(
-				new TitledBorder(null, "Telegrams Log", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+				null);
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 		TelegramPanel.add(scrollPane, BorderLayout.CENTER);
-
+		
 		textArea = new TelegramsLog(configuration, telegramMetadata);
 		textArea.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
 					try {
-						int line = textArea.getCaretPosition();
-						int start = Utilities.getRowStart(textArea, line);
-						int end = Utilities.getRowEnd(textArea, line);
+						int caretPosition = textArea.getCaretPosition();
+						int start = Utilities.getRowStart(textArea, caretPosition);
+						int end = Utilities.getRowEnd(textArea, caretPosition);
 
 						String text = textArea.getDocument().getText(start, end - start);
 						if (!text.equals("")) {
 							JCoStructure telegram = JCo.createStructure(telegramMetadata);
 							telegram.setString(text);
-							new TelegramDialog(telegram.getRecordFieldIterator(), true, "Line: " + (line + 1));
+							int line = textArea.getDocument().getDefaultRootElement().getElementIndex(caretPosition)+1;
+							new TelegramDialog(telegram.getRecordFieldIterator(), true, "Line: " + line);
 						}
 					} catch (BadLocationException exc) {
 						logger.catching(exc);
@@ -298,7 +306,42 @@ public class Sim extends JFrame {
 		});
 		textArea.setEditable(false);
 		textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+		
+		JTextArea lineNumbers = new JTextArea("1");
+		lineNumbers.setFont(new Font("Monospaced", Font.PLAIN, 12));
+		lineNumbers.setBackground(Color.LIGHT_GRAY);
+		lineNumbers.setEditable(false);
+		lineNumbers.setMargin(textArea.getMargin());
+		
+		textArea.getDocument().addDocumentListener(new DocumentListener(){
+			public String getText(){
+				int caretPosition = textArea.getDocument().getLength();
+				Element root = textArea.getDocument().getDefaultRootElement();
+				String text = "1" + System.getProperty("line.separator");
+				for(int i = 2; i < root.getElementIndex( caretPosition ) + 1; i++){
+					text += i + System.getProperty("line.separator");
+				}
+				return text;
+			}
+			@Override
+			public void changedUpdate(DocumentEvent de) {
+				lineNumbers.setText(getText());
+			}
+ 
+			@Override
+			public void insertUpdate(DocumentEvent de) {
+				lineNumbers.setText(getText());
+			}
+ 
+			@Override
+			public void removeUpdate(DocumentEvent de) {
+				lineNumbers.setText(getText());
+			}
+ 
+		});
+		
 		scrollPane.setViewportView(textArea);
+		scrollPane.setRowHeaderView(lineNumbers);
 
 		JPanel TopPanel = new JPanel();
 		TopPanel.setBorder(new TitledBorder(null, "Controls", TitledBorder.LEADING, TitledBorder.TOP, null, null));
