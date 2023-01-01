@@ -60,7 +60,7 @@ public class TcpServer {
 					BufferedReader fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
 					while (!socket.isClosed()) {
-						// Input message from TCP client; sending to out pipe from TCP thread
+						// Input message from TCP client
 						String message = fromClient.readLine();
 						if (message == null) {
 							logger.info("TCP client disconnected");
@@ -69,7 +69,6 @@ public class TcpServer {
 							logger.debug("Received from TCP client: " + message);
 							received.add(message);
 							logger.debug("Number of received message in the buffer: " + received.size());
-							logger.debug("TCP server thread sent to pipe: " + message);
 						}
 					}
 					fromClient.close();

@@ -36,7 +36,6 @@ import javax.swing.text.Element;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
-import javax.swing.text.Utilities;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -274,28 +273,40 @@ public class Sim extends JFrame {
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setAlignmentX(0.0f);
 		scrollPane.setAlignmentY(0.0f);
-		scrollPane.setViewportBorder(
-				null);
+		scrollPane.setViewportBorder(null);
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 		TelegramPanel.add(scrollPane, BorderLayout.CENTER);
-		
+
 		textArea = new TelegramsLog(configuration, telegramMetadata);
-		textArea.addMouseListener(new MouseAdapter() {
+		textArea.setEditable(false);
+		textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+
+		JTextArea lineNumbers = new JTextArea("1");
+		lineNumbers.setFont(new Font("Monospaced", Font.PLAIN, 12));
+		lineNumbers.setBackground(Color.LIGHT_GRAY);
+		lineNumbers.setEditable(false);
+		lineNumbers.setFocusable(false);
+		lineNumbers.setHighlighter(null);
+		lineNumbers.setMargin(textArea.getMargin());
+		lineNumbers.addMouseListener(new MouseAdapter () {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
 					try {
-						int caretPosition = textArea.getCaretPosition();
-						int start = Utilities.getRowStart(textArea, caretPosition);
-						int end = Utilities.getRowEnd(textArea, caretPosition);
+						int caretPosition = lineNumbers.getCaretPosition();
+						int line = lineNumbers.getDocument().getDefaultRootElement().getElementIndex(caretPosition);
+						Element element = textArea.getDocument().getDefaultRootElement().getElement(line);
+						
+						int start = element.getStartOffset();
+						int end = element.getEndOffset();
 
 						String text = textArea.getDocument().getText(start, end - start);
+						text = text.replace("\n", "");
 						if (!text.equals("")) {
 							JCoStructure telegram = JCo.createStructure(telegramMetadata);
 							telegram.setString(text);
-							int line = textArea.getDocument().getDefaultRootElement().getElementIndex(caretPosition)+1;
-							new TelegramDialog(telegram.getRecordFieldIterator(), true, "Line: " + line);
+							new TelegramDialog(telegram.getRecordFieldIterator(), true, "Line: " + (line+1));
 						}
 					} catch (BadLocationException exc) {
 						logger.catching(exc);
@@ -303,44 +314,52 @@ public class Sim extends JFrame {
 				}
 			}
 		});
-		textArea.setEditable(false);
-		textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-		
-		JTextArea lineNumbers = new JTextArea("1");
-		lineNumbers.setFont(new Font("Monospaced", Font.PLAIN, 12));
-		lineNumbers.setBackground(Color.LIGHT_GRAY);
-		lineNumbers.setEditable(false);
-		lineNumbers.setMargin(textArea.getMargin());
-		
-		textArea.getDocument().addDocumentListener(new DocumentListener(){
-			public String getText(){
+
+		textArea.getDocument().addDocumentListener(new DocumentListener() {
+			public String getText() {
 				int caretPosition = textArea.getDocument().getLength();
 				Element root = textArea.getDocument().getDefaultRootElement();
 				String text = "1" + System.getProperty("line.separator");
-				for(int i = 2; i < root.getElementIndex( caretPosition ) + 1; i++){
+				for (int i = 2; i < root.getElementIndex(caretPosition) + 1; i++) {
 					text += i + System.getProperty("line.separator");
 				}
 				return text;
 			}
+
 			@Override
 			public void changedUpdate(DocumentEvent de) {
 				lineNumbers.setText(getText());
 			}
- 
+
 			@Override
 			public void insertUpdate(DocumentEvent de) {
 				lineNumbers.setText(getText());
 			}
- 
+
 			@Override
 			public void removeUpdate(DocumentEvent de) {
 				lineNumbers.setText(getText());
 			}
- 
+
 		});
 		
 		scrollPane.setViewportView(textArea);
 		scrollPane.setRowHeaderView(lineNumbers);
+
+		JTextArea ruler = new JTextArea();
+		ruler.setFont(new Font("Monospaced", Font.PLAIN, 12));
+		ruler.setBackground(Color.LIGHT_GRAY);
+		ruler.setEditable(false);
+		ruler.setFocusable(false);
+		ruler.setMargin(textArea.getMargin());
+		for (int j = 0; j < 3; j++) {
+			ruler.setText(ruler.getText() + (j==0?"....:....":"0....:...."));
+			for (int i = 1; i < 10; i++) {
+				ruler.setText(ruler.getText() + i + "....:....");
+			}
+		}
+		
+		scrollPane.setColumnHeaderView(ruler);
 
 		JPanel TopPanel = new JPanel();
 		TopPanel.setBorder(new TitledBorder(null, "Controls", TitledBorder.LEADING, TitledBorder.TOP, null, null));
