@@ -96,4 +96,4 @@ I would like to express my deepest gratitude to:
 - [Hendrik Schulte-Bahrenberg](https://www.linkedin.com/in/hendrik-schulte-bahrenberg-9a415339/) whose [WMexperts.online blogs](https://wmexperts.online/author/hschultebahrenberg/) has provided all-important technical insights into SAP EWM MFS inner working.
 - Countless Java experts and enthusiasts who share their knowledge on the net.
 
-This project would have been possible without them.
+This project would have not been possible without them.
