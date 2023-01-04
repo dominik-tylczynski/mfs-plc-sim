@@ -315,7 +315,7 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 				logger.debug("Socket created: " + address + ":" + port);
 				channels.put(channel.getAddress(), channel);
 				logger.debug("Starting new thread for channel: " + address + ":" + port);
-				channel.thread.start();
+				channel.start();
 				logger.debug("New thread started for channel: " + address + ":" + port);
 				logger.debug("*** Channel started: " + address + ":" + port);
 			} catch (IOException e) {

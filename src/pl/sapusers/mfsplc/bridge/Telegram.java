@@ -6,15 +6,32 @@ import com.sap.conn.jco.JCoRecordMetaData;
 import com.sap.conn.jco.JCoStructure;
 import com.sap.conn.jco.server.JCoServer;
 
+/**
+ * Telegram object class
+ * Currently not used
+ * 
+ */
 public class Telegram {
 
 	private JCoStructure telegramContent;
 
+	/**
+	 * Creates telegram object provided structure and content 
+	 * 
+	 * @param telegramMetadata Telegram structure description
+	 * @param telegramString Telegram content
+	 */
 	public Telegram(JCoRecordMetaData telegramMetadata, String telegramString) {
 		telegramContent = JCo.createStructure(telegramMetadata);
 		telegramContent.setString(telegramString);
 	}
 
+	/**
+	 * @param server JCoServer that is contacted to built telegram structure
+	 * @param telegramStructure Name of telegram structure as defined in SAP Data Dictionary
+	 * @param telegramString Telegram content
+	 * @throws JCoException if SAP server can't be contacted or if telegram structure can't be built
+	 */
 	public Telegram(JCoServer server, String telegramStructure, String telegramString) throws JCoException {
 		this(server.getRepository().getStructureDefinition(telegramStructure), telegramString);
 	}
@@ -29,6 +46,11 @@ public class Telegram {
 		return telegramContent.getString(field);
 	}
 
+	/**
+	 * Returns telegram content as a string
+	 * 
+	 * @return telegram content as a string
+	 */
 	public String getString() {
 		return telegramContent.getString();
 	}

@@ -16,14 +16,24 @@ import com.sap.conn.jco.JCoFunction;
 public class Channel implements Runnable {
 	private Logger logger = LogManager.getLogger(Channel.class.getName());
 
+	/**
+	 * Channel address as provided by SAP during channel start
+	 */
 	private String address;
+	
+	/**
+	 * Channel port as provided by SAP during channel start
+	 */
 	private String port;
 	private Socket socket;
-	private String destination;
 	private BufferedReader reader;
 	private OutputStreamWriter writer;
-
-	public Thread thread;
+	
+	/**
+	 * SAP destination name that received telegrams with RFC call to /SCWM/MFS_RECEIVE2 function
+	 */
+	private String destination;
+	private Thread thread;
 
 	public String getDestination() {
 		return destination;
@@ -37,6 +47,10 @@ public class Channel implements Runnable {
 		this.thread.setName("Channel-" + this.thread.getName());
 	}
 
+	public void start() {
+		thread.start();
+	}
+	
 	public void createSocket() throws IOException {
 		socket = new Socket(address, Integer.parseUnsignedInt(port));
 		reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -93,6 +107,11 @@ public class Channel implements Runnable {
 		}
 	}
 
+	/**
+	 * Sends a telegram to SAP with RFC call to /SCWM/MFS_RECEIVE2 function
+	 * 
+	 * @param telegram telegram content as String
+	 */
 	private void sendTelegramToSAP(String telegram) {
 //		FUNCTION /SCWM/MFS_RECEIVE2.
 //		*"----------------------------------------------------------------------

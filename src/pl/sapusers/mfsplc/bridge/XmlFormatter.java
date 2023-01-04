@@ -10,6 +10,10 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+/**
+ * Helper class to format XML string
+ * Used in trace logging to list RFC function call from SAP
+ */
 public class XmlFormatter {
 	public static String format(String input) {
 		try {
