@@ -8,7 +8,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -333,25 +332,12 @@ public class Sim extends JFrame {
 		ruler.setMargin(textTelegrams.getMargin());
 		ruler.setBackground(Color.LIGHT_GRAY);
 		for (int j = 0; j < 3; j++) {
-			ruler.setText(ruler.getText() + (j==0?"....:....":"0....:...."));
+			ruler.setText(ruler.getText() + (j == 0 ? "....:...." : "0....:...."));
 			for (int i = 1; i < 10; i++) {
 				ruler.setText(ruler.getText() + i + "....:....");
 			}
 		}
 
-		ruler.addMouseMotionListener( new MouseMotionListener() {
-			
-			@Override
-			public void mouseMoved(MouseEvent e) {
-				ruler.setCaretPosition(0);				
-			}
-			
-			@Override
-			public void mouseDragged(MouseEvent e) {
-				ruler.setCaretPosition(0);
-			}
-		});
-		
 		scrollPane.setColumnHeaderView(ruler);
 	}
 
@@ -366,15 +352,17 @@ public class Sim extends JFrame {
 		lineNumbers.setFocusable(false);
 		lineNumbers.setHighlighter(null);
 		lineNumbers.setMargin(textTelegrams.getMargin());
-		lineNumbers.addMouseListener(new MouseAdapter () {
+		lineNumbers.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
 					try {
 						int caretPosition = lineNumbers.getCaretPosition();
 						int line = lineNumbers.getDocument().getDefaultRootElement().getElementIndex(caretPosition);
+						if (caretPosition > 1 && lineNumbers.getDocument().getText(caretPosition - 1, 1).equals("\n"))
+							line--;
 						Element element = textTelegrams.getDocument().getDefaultRootElement().getElement(line);
-						
+
 						int start = element.getStartOffset();
 						int end = element.getEndOffset();
 
@@ -383,7 +371,7 @@ public class Sim extends JFrame {
 						if (!text.equals("")) {
 							JCoStructure telegram = JCo.createStructure(telegramMetadata);
 							telegram.setString(text);
-							new TelegramDialog(telegram.getRecordFieldIterator(), true, "Line: " + (line+1));
+							new TelegramDialog(telegram.getRecordFieldIterator(), true, "Line: " + (line + 1));
 						}
 					} catch (BadLocationException exc) {
 						logger.catching(exc);
@@ -392,19 +380,6 @@ public class Sim extends JFrame {
 			}
 		});
 
-		lineNumbers.addMouseMotionListener( new MouseMotionListener() {
-			
-			@Override
-			public void mouseMoved(MouseEvent e) {
-				lineNumbers.setCaretPosition(0);				
-			}
-			
-			@Override
-			public void mouseDragged(MouseEvent e) {
-				lineNumbers.setCaretPosition(0);
-			}
-		});
-		
 		textTelegrams.getDocument().addDocumentListener(new DocumentListener() {
 			public String getText() {
 				int caretPosition = textTelegrams.getDocument().getLength();
@@ -432,8 +407,10 @@ public class Sim extends JFrame {
 			}
 
 		});
-		
-		scrollPane.setViewportView(textTelegrams);
+
+		JPanel noWrapPanel = new JPanel(new BorderLayout());
+		noWrapPanel.add(textTelegrams);
+		scrollPane.setViewportView(noWrapPanel);
 		scrollPane.setRowHeaderView(lineNumbers);
 	}
 

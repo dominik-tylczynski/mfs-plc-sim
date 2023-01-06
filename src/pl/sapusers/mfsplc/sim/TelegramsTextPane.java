@@ -50,7 +50,7 @@ public class TelegramsTextPane extends JTextPane {
 			}
 		}
 	}
-
+	
 	public void addTelegram(String message) {
 		JCoStructure telegram = JCo.createStructure(telegramMetadata);
 		telegram.setString(message);
