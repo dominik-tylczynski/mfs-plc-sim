@@ -19,7 +19,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
@@ -28,10 +27,6 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Element;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -220,12 +215,7 @@ public class Sim extends JFrame {
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 		TelegramPanel.add(scrollPane, BorderLayout.CENTER);
 
-		textTelegrams = new TelegramsTextPane(configuration, telegramMetadata);
-		textTelegrams.setEditable(false);
-		textTelegrams.setFont(new Font("Monospaced", Font.PLAIN, 12));
-
-		addLineNumbers(scrollPane);
-		addRuler(scrollPane);
+		textTelegrams = new TelegramsTextPane(configuration, telegramMetadata, scrollPane);
 
 		JPanel TopPanel = new JPanel();
 		TopPanel.setBorder(new TitledBorder(null, "Controls", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -319,99 +309,6 @@ public class Sim extends JFrame {
 
 		JLabel lblLicense = new JLabel("Copyleft: GNU AGPLv3");
 		BottomPannel.add(lblLicense, BorderLayout.EAST);
-	}
-
-	/**
-	 * @param scrollPane
-	 */
-	private void addRuler(JScrollPane scrollPane) {
-		JTextArea ruler = new JTextArea();
-		ruler.setFont(new Font("Monospaced", Font.PLAIN, 12));
-		ruler.setEditable(false);
-		ruler.setFocusable(false);
-		ruler.setMargin(textTelegrams.getMargin());
-		ruler.setBackground(Color.LIGHT_GRAY);
-		for (int j = 0; j < 3; j++) {
-			ruler.setText(ruler.getText() + (j == 0 ? "....:...." : "0....:...."));
-			for (int i = 1; i < 10; i++) {
-				ruler.setText(ruler.getText() + i + "....:....");
-			}
-		}
-
-		scrollPane.setColumnHeaderView(ruler);
-	}
-
-	/**
-	 * @param scrollPane
-	 */
-	private void addLineNumbers(JScrollPane scrollPane) {
-		JTextArea lineNumbers = new JTextArea("1");
-		lineNumbers.setFont(new Font("Monospaced", Font.PLAIN, 12));
-		lineNumbers.setBackground(Color.LIGHT_GRAY);
-		lineNumbers.setEditable(false);
-		lineNumbers.setFocusable(false);
-		lineNumbers.setHighlighter(null);
-		lineNumbers.setMargin(textTelegrams.getMargin());
-		lineNumbers.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (e.getClickCount() == 2) {
-					try {
-						int caretPosition = lineNumbers.getCaretPosition();
-						int line = lineNumbers.getDocument().getDefaultRootElement().getElementIndex(caretPosition);
-						if (caretPosition > 1 && lineNumbers.getDocument().getText(caretPosition - 1, 1).equals("\n"))
-							line--;
-						Element element = textTelegrams.getDocument().getDefaultRootElement().getElement(line);
-
-						int start = element.getStartOffset();
-						int end = element.getEndOffset();
-
-						String text = textTelegrams.getDocument().getText(start, end - start);
-						text = text.replace("\n", "");
-						if (!text.equals("")) {
-							JCoStructure telegram = JCo.createStructure(telegramMetadata);
-							telegram.setString(text);
-							new TelegramDialog(telegram.getRecordFieldIterator(), true, "Line: " + (line + 1));
-						}
-					} catch (BadLocationException exc) {
-						logger.catching(exc);
-					}
-				}
-			}
-		});
-
-		textTelegrams.getDocument().addDocumentListener(new DocumentListener() {
-			public String getText() {
-				int caretPosition = textTelegrams.getDocument().getLength();
-				Element root = textTelegrams.getDocument().getDefaultRootElement();
-				String text = "1" + System.getProperty("line.separator");
-				for (int i = 2; i < root.getElementIndex(caretPosition) + 1; i++) {
-					text += i + System.getProperty("line.separator");
-				}
-				return text;
-			}
-
-			@Override
-			public void changedUpdate(DocumentEvent de) {
-				lineNumbers.setText(getText());
-			}
-
-			@Override
-			public void insertUpdate(DocumentEvent de) {
-				lineNumbers.setText(getText());
-			}
-
-			@Override
-			public void removeUpdate(DocumentEvent de) {
-				lineNumbers.setText(getText());
-			}
-
-		});
-
-		JPanel noWrapPanel = new JPanel(new BorderLayout());
-		noWrapPanel.add(textTelegrams);
-		scrollPane.setViewportView(noWrapPanel);
-		scrollPane.setRowHeaderView(lineNumbers);
 	}
 
 	public JTextPane getTextArea() {
