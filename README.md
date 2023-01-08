@@ -93,7 +93,7 @@ PLC Sim has been implemented with:
 I would like to express my deepest gratitude to:
 - [Victor Cerullo](https://www.linkedin.com/in/victor-cerullo-8942072/) - his [PLC Emulator](http://www.venetica.net/Sites/PLC_Emulator/PLC_Emulator.html) has inspired this project.
 - [Jörg Michaelis](https://www.linkedin.com/in/j%C3%B6rg-michaelis-82663766/) - his [Blog Series about the Material Flow System Component of SAP Extended Warehouse Management](https://blogs.sap.com/2020/11/20/blog-series-about-the-material-flow-system-component-of-sap-extended-warehouse-management/) has been an invaluable introduction to the configuration and workings of SAP EWM MFS.
-- [Hendrik Schulte-Bahrenberg](https://www.linkedin.com/in/hendrik-schulte-bahrenberg-9a415339/) whose [WMexperts.online blogs](https://wmexperts.online/author/hschultebahrenberg/) has provided all-important technical insights into SAP EWM MFS inner working.
+- [Hendrik Schulte-Bahrenberg](https://www.linkedin.com/in/hendrik-schulte-bahrenberg-9a415339/) whose [WMexperts.online blogs](https://wmexperts.online/author/hschultebahrenberg/) have provided all-important technical insights into SAP EWM MFS inner working.
 - Countless Java experts and enthusiasts who share their knowledge on the net.
 
 This project would have not been possible without them.
