@@ -1,7 +1,7 @@
 # Introduction
 PLC Sim is a free, open source, platform independent tool to test SAP EWM MFS connectivity and facilitate SAP EWM MFS implementation projects.
 
-The software has been made available under copyleft [GNU Affero General Public License v3.0](https://github.com/dominik-tylczynski/mfs-plc-sim/blob/master/mfs-plc-sim/LICENSE)
+The software has been made available under copyleft [GNU Affero General Public License v3.0](https://github.com/dominik-tylczynski/mfs-plc-sim/blob/master/LICENSE)
 
 # Main Features
 The current release of PLC Sim supports:
