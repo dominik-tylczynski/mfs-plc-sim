@@ -91,7 +91,7 @@ public class TelegramDialog extends JDialog {
 
 			springLayout.putConstraint(SpringLayout.WEST, label, PADDING, SpringLayout.WEST, p);
 
-			JTextField textField = new JTextField(field.getLength());
+			JTextField textField = new JTextField(field.getLength()+1);
 			textField.setName(field.getName());
 			textField.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 
