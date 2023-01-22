@@ -4,5 +4,6 @@
 *.log
 *.trc
 *.jco*
+!sample*.jco*
 /.classpath
 /.project

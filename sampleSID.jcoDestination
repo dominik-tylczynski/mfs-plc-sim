@@ -1,0 +1,9 @@
+jco.client.user=user id
+jco.client.passwd=user password
+jco.client.lang=logon language e.g. EN
+jco.client.client=logon client number
+jco.client.ashost=application server IP
+jco.client.sysnr=SAP system number
+jco.client.r3name=SAP system ID - SID
+jco.client.saprouter=sap router string if needed
+jco.destination.pool_capacity=3

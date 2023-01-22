@@ -1,0 +1,6 @@
+jco.server.gwhost=gateway host IP
+jco.server.gwserv=gateway port
+jco.server.progid=PROGID
+jco.server.connection_count=1
+jco.server.saprouter=saprouter string if needed
+jco.server.repository_destination=SID
