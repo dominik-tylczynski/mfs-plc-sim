@@ -166,7 +166,7 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 // Print channels' statuses
 		System.out.println("*** Communication Channels Status ***");
 		System.out.println("Number of channels: " + channels.size());
-		for (var entry : channels.entrySet()) {
+		for (Map.Entry<String, Channel> entry : channels.entrySet()) {
 			System.out.println("Key: " + entry.getKey() + " Address: " + entry.getValue().getAddress()
 					+ " Destination: " + entry.getValue().getDestination());
 			System.out.println("   Socket status: " + entry.getValue().getSocketStatus());
