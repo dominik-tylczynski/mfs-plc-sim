@@ -19,6 +19,9 @@ public class TcpServer {
 	private ServerSocket serverSocket;
 	private Socket socket;
 	
+	private Thread senderThread;
+	private Thread receiverThread;
+	
 	public ArrayBlockingQueue<String> incoming = new ArrayBlockingQueue<String>(QUEUE_SIZE);
 	public ArrayBlockingQueue<String> outgoing = new ArrayBlockingQueue<String>(QUEUE_SIZE);
 
@@ -56,7 +59,7 @@ public class TcpServer {
 					socket = serverSocket.accept();
 					logger.info("Client connected");
 
-					Thread senderThread = new Thread(new MfsSocketSender());
+					senderThread = new Thread(new MfsSocketSender());
 					senderThread.setName("Socket Sender " + senderThread.getName());
 					senderThread.start();
 
@@ -75,8 +78,10 @@ public class TcpServer {
 						}
 					}
 					fromClient.close();
+					senderThread.interrupt();
 				} catch (IOException | IllegalStateException e) {
 					logger.debug(e);
+					senderThread.interrupt();
 				}
 			}
 		}
@@ -84,23 +89,10 @@ public class TcpServer {
 
 	public TcpServer(int port) throws IOException {
 		serverSocket = new ServerSocket(port);
-		Thread receiverThread = new Thread(new MfsSocketReceiver());
+		receiverThread = new Thread(new MfsSocketReceiver());
 		receiverThread.setName("Socket Receiver " + receiverThread.getName());
 		receiverThread.start();
 	}
-
-//	public void sendMessage(String message) {
-//		outgoing.add(message);
-//	}
-//
-//	public String receiveMessage() {
-//		if (incoming.size() > 0) {
-//			String message = incoming.get(0);
-//			incoming.remove(0);
-//			return message;
-//		} else
-//			return null;
-//	}
 
 	public void stopServer() {
 		try {
@@ -108,6 +100,7 @@ public class TcpServer {
 			if (socket != null)
 				socket.close();
 			serverSocket.close();
+			receiverThread.interrupt();
 			logger.debug("Server socket closed");
 		} catch (IOException e) {
 			logger.catching(e);

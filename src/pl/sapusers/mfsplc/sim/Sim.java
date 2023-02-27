@@ -50,6 +50,8 @@ public class Sim extends JFrame {
 	private boolean switchSenderReceiver;
 	private JCoRecordMetaData telegramMetadata;
 
+	private Thread processor;
+	
 	private TcpServer server;
 	private TelegramsTextPane textTelegrams;
 	private JToggleButton tglbtnLife;
@@ -258,13 +260,14 @@ public class Sim extends JFrame {
 		});
 		btnStartStop.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ac) {
+				
 				if (textPort.isEditable()) {
 
 					try {
 						server = new TcpServer(Integer.parseUnsignedInt(textPort.getText()));
-						Thread thread = new Thread(new TcpIpProcessor());
-						thread.setName("Telegram processor " + thread.getName());
-						thread.start();
+						processor = new Thread(new TcpIpProcessor());
+						processor.setName("Telegram processor " + processor.getName());
+						processor.start();
 						textPort.setEditable(false);
 						textPort.setBackground(Color.YELLOW);
 						textPort.setText(Integer.toString(Integer.parseUnsignedInt(textPort.getText())));
@@ -280,6 +283,7 @@ public class Sim extends JFrame {
 					btnStartStop.setText("Start");
 					textPort.setBackground(Color.WHITE);
 					server.stopServer();
+					processor.interrupt();
 				}
 			}
 		});
