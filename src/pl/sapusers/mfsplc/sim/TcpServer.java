@@ -13,19 +13,28 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class TcpServer {
-	private int QUEUE_SIZE = 1000; 
-	
+	private static final int QUEUE_SIZE = 1000;
+	public static final String STATUS_STOPPED = "0";
+	public static final String STATUS_STARTED = "1";
+	public static final String STATUS_CONNECTED = "2";
+
 	private Logger logger = LogManager.getLogger(TcpServer.class.getName());
 	private ServerSocket serverSocket;
 	private Socket socket;
-	
+
 	private Thread senderThread;
 	private Thread receiverThread;
-	
+
 	public ArrayBlockingQueue<String> incoming = new ArrayBlockingQueue<String>(QUEUE_SIZE);
 	public ArrayBlockingQueue<String> outgoing = new ArrayBlockingQueue<String>(QUEUE_SIZE);
 
 	class MfsSocketSender implements Runnable {
+		private String status;
+		
+		public MfsSocketSender(String status) {
+//			this.status = status;
+		}
+		
 		@Override
 		public void run() {
 			try {
@@ -51,6 +60,11 @@ public class TcpServer {
 	}
 
 	class MfsSocketReceiver implements Runnable {
+		private String status;
+
+		public MfsSocketReceiver(String status) {
+			this.status = status;
+		}
 
 		@Override
 		public void run() {
@@ -59,7 +73,13 @@ public class TcpServer {
 					socket = serverSocket.accept();
 					logger.info("Client connected");
 
-					senderThread = new Thread(new MfsSocketSender());
+					status = STATUS_CONNECTED;
+
+					synchronized(status) {
+						status.notify();
+					}
+
+					senderThread = new Thread(new MfsSocketSender(status));
 					senderThread.setName("Socket Sender " + senderThread.getName());
 					senderThread.start();
 
@@ -81,15 +101,16 @@ public class TcpServer {
 					senderThread.interrupt();
 				} catch (IOException | IllegalStateException e) {
 					logger.debug(e);
-					senderThread.interrupt();
+					if (senderThread != null)
+						senderThread.interrupt();
 				}
 			}
 		}
 	}
 
-	public TcpServer(int port) throws IOException {
+	public TcpServer(int port, String status) throws IOException {
 		serverSocket = new ServerSocket(port);
-		receiverThread = new Thread(new MfsSocketReceiver());
+		receiverThread = new Thread(new MfsSocketReceiver(status));
 		receiverThread.setName("Socket Receiver " + receiverThread.getName());
 		receiverThread.start();
 	}
@@ -121,7 +142,7 @@ public class TcpServer {
 	public static void main(String args[]) throws IOException {
 		TcpServer tcpServer = null;
 
-		tcpServer = new TcpServer(6969);
+		tcpServer = new TcpServer(6969, new String());
 
 		BufferedReader fromKeyboard = new BufferedReader(new InputStreamReader(System.in));
 

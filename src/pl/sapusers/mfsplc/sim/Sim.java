@@ -51,7 +51,10 @@ public class Sim extends JFrame {
 	private JCoRecordMetaData telegramMetadata;
 
 	private Thread processor;
+	private Thread monitor;
 	
+	private String status = new String();
+
 	private TcpServer server;
 	private TelegramsTextPane textTelegrams;
 	private JToggleButton tglbtnLife;
@@ -59,21 +62,49 @@ public class Sim extends JFrame {
 	private JToggleButton tglAutoHandshake;
 	private JButton btnSend;
 
+	class TcpIpMonitor implements Runnable {
+		private String status;
+
+		public TcpIpMonitor(String status) {
+			this.status = status;
+		}
+
+		@Override
+		public void run() {
+			while (server.isRunning()) {
+				
+				synchronized (status) {
+					try {
+						status.wait();
+					} catch (InterruptedException e) {
+						logger.debug(e);
+					}
+				}
+
+				switch (status) {
+				case TcpServer.STATUS_STOPPED:
+					textPort.setBackground(Color.WHITE);
+					btnSend.setEnabled(false);
+					break;
+				case TcpServer.STATUS_STARTED:
+					textPort.setBackground(Color.YELLOW);
+					btnSend.setEnabled(false);
+					break;
+				case TcpServer.STATUS_CONNECTED:
+					textPort.setBackground(Color.GREEN);
+					btnSend.setEnabled(true);
+					break;
+				}
+			}
+		}
+	}
+
 	class TcpIpProcessor implements Runnable {
 
 		@Override
 		public void run() {
 
 			while (server.isRunning()) {
-
-				if (server.isClientConnected()) {
-					textPort.setBackground(Color.GREEN);
-					btnSend.setEnabled(true);
-				} else {
-					textPort.setBackground(Color.YELLOW);
-					btnSend.setEnabled(false);
-				}
-
 				String message = null;
 				try {
 					message = server.incoming.take();
@@ -103,8 +134,6 @@ public class Sim extends JFrame {
 				} catch (InterruptedException e) {
 				}
 			}
-			textPort.setBackground(Color.WHITE);
-			btnSend.setEnabled(false);
 		}
 	}
 
@@ -260,14 +289,17 @@ public class Sim extends JFrame {
 		});
 		btnStartStop.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ac) {
-				
+
 				if (textPort.isEditable()) {
 
 					try {
-						server = new TcpServer(Integer.parseUnsignedInt(textPort.getText()));
+						server = new TcpServer(Integer.parseUnsignedInt(textPort.getText()), status);
 						processor = new Thread(new TcpIpProcessor());
 						processor.setName("Telegram processor " + processor.getName());
 						processor.start();
+						monitor = new Thread(new TcpIpMonitor(status));
+						monitor.setName("Server monitor " + monitor.getName());
+						monitor.start();
 						textPort.setEditable(false);
 						textPort.setBackground(Color.YELLOW);
 						textPort.setText(Integer.toString(Integer.parseUnsignedInt(textPort.getText())));
@@ -284,6 +316,7 @@ public class Sim extends JFrame {
 					textPort.setBackground(Color.WHITE);
 					server.stopServer();
 					processor.interrupt();
+					monitor.interrupt();
 				}
 			}
 		});
