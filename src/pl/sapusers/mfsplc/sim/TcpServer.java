@@ -7,20 +7,22 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class TcpServer {
+	private int QUEUE_SIZE = 1000; 
+	
 	private Logger logger = LogManager.getLogger(TcpServer.class.getName());
 	private ServerSocket serverSocket;
 	private Socket socket;
-	private ArrayList<String> received = new ArrayList<String>();
-	private ArrayList<String> outgoing = new ArrayList<String>();
+	
+	public ArrayBlockingQueue<String> incoming = new ArrayBlockingQueue<String>(QUEUE_SIZE);
+	public ArrayBlockingQueue<String> outgoing = new ArrayBlockingQueue<String>(QUEUE_SIZE);
 
 	class MfsSocketSender implements Runnable {
-
 		@Override
 		public void run() {
 			try {
@@ -28,13 +30,14 @@ public class TcpServer {
 
 				while (!socket.isClosed()) {
 					// Send messages from server to client
-					if (outgoing.size() > 0) {
-						String out = outgoing.get(0);
+					try {
+						String out = outgoing.take();
 						logger.debug("TCP server thread received: " + out);
 						toClient.write(out + "\n");
 						toClient.flush();
 						logger.debug("Send to TCP client: " + out);
-						outgoing.remove(0);
+					} catch (InterruptedException e) {
+						logger.debug(e);
 					}
 				}
 				toClient.close();
@@ -67,12 +70,12 @@ public class TcpServer {
 							socket.close();
 						} else {
 							logger.debug("Received from TCP client: " + message);
-							received.add(message);
-							logger.debug("Number of received message in the buffer: " + received.size());
+							incoming.add(message);
+							logger.debug("Number of received message in the buffer: " + incoming.size());
 						}
 					}
 					fromClient.close();
-				} catch (IOException e) {
+				} catch (IOException | IllegalStateException e) {
 					logger.debug(e);
 				}
 			}
@@ -86,18 +89,18 @@ public class TcpServer {
 		receiverThread.start();
 	}
 
-	public void sendMessage(String message) {
-		outgoing.add(message);
-	}
-
-	public String receiveMessage() {
-		if (received.size() > 0) {
-			String message = received.get(0);
-			received.remove(0);
-			return message;
-		} else
-			return null;
-	}
+//	public void sendMessage(String message) {
+//		outgoing.add(message);
+//	}
+//
+//	public String receiveMessage() {
+//		if (incoming.size() > 0) {
+//			String message = incoming.get(0);
+//			incoming.remove(0);
+//			return message;
+//		} else
+//			return null;
+//	}
 
 	public void stopServer() {
 		try {
@@ -137,11 +140,17 @@ public class TcpServer {
 						tcpServer.stopServer();
 						System.exit(0);
 					}
-					tcpServer.sendMessage(message);
+					tcpServer.outgoing.add(message);
 				}
-			} catch (IOException e) {
+			} catch (IOException | IllegalStateException e) {
 			}
-			String message = tcpServer.receiveMessage();
+			String message;
+			try {
+				message = tcpServer.incoming.take();
+			} catch (InterruptedException e) {
+				message = null;
+				e.printStackTrace();
+			}
 			if (message != null) {
 				System.out.println("Main received: " + message);
 			}

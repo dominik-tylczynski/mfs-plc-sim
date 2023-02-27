@@ -62,7 +62,6 @@ public class Sim extends JFrame {
 		@Override
 		public void run() {
 
-			
 			while (server.isRunning()) {
 
 				if (server.isClientConnected()) {
@@ -74,8 +73,8 @@ public class Sim extends JFrame {
 				}
 
 				String message = null;
-				if ((message = server.receiveMessage()) != null) {
-
+				try {
+					message = server.incoming.take();
 					JCoStructure telegram = JCo.createStructure(telegramMetadata);
 					telegram.setString(message);
 
@@ -92,13 +91,14 @@ public class Sim extends JFrame {
 							response.getField("SENDER").setValue(telegram.getString("RECEIVER"));
 							response.getField("RECEIVER").setValue(telegram.getString("SENDER"));
 						}
-						server.sendMessage(response.getString());
+						server.outgoing.add(response.getString());
 
 						if (response.getString("TELETYPE").equals("LIFE") && tglbtnLife.isSelected()
 								|| !response.getString("TELETYPE").equals("LIFE"))
 							textTelegrams.addTelegram(response);
 
 					}
+				} catch (InterruptedException e) {
 				}
 			}
 			textPort.setBackground(Color.WHITE);
@@ -294,7 +294,7 @@ public class Sim extends JFrame {
 		btnSend.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (!textTelegram.getText().equals("")) {
-					server.sendMessage(textTelegram.getText());
+					server.outgoing.add(textTelegram.getText());
 					textTelegrams.addTelegram(textTelegram.getText());
 					textTelegram.setText("");
 				}
