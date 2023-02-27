@@ -62,6 +62,7 @@ public class Sim extends JFrame {
 		@Override
 		public void run() {
 
+			
 			while (server.isRunning()) {
 
 				if (server.isClientConnected()) {
