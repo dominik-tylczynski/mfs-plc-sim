@@ -20,7 +20,7 @@ public class Channel implements Runnable {
 	 * Channel address as provided by SAP during channel start
 	 */
 	private String address;
-	
+
 	/**
 	 * Channel port as provided by SAP during channel start
 	 */
@@ -28,9 +28,10 @@ public class Channel implements Runnable {
 	private Socket socket;
 	private BufferedReader reader;
 	private OutputStreamWriter writer;
-	
+
 	/**
-	 * SAP destination name that received telegrams with RFC call to /SCWM/MFS_RECEIVE2 function
+	 * SAP destination name that received telegrams with RFC call to
+	 * /SCWM/MFS_RECEIVE2 function
 	 */
 	private String destination;
 	private Thread thread;
@@ -50,7 +51,7 @@ public class Channel implements Runnable {
 	public void start() {
 		thread.start();
 	}
-	
+
 	public void createSocket() throws IOException {
 		socket = new Socket(address, Integer.parseUnsignedInt(port));
 		reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -70,8 +71,8 @@ public class Channel implements Runnable {
 	}
 
 	public String getSocketStatus() {
-		return "local port:" + socket.getLocalPort() + " isBound:" + socket.isBound() + " isClosed:" + socket.isClosed() + " isConnected:"
-				+ socket.isConnected();
+		return "local port:" + socket.getLocalPort() + " isBound:" + socket.isBound() + " isClosed:" + socket.isClosed()
+				+ " isConnected:" + socket.isConnected();
 	}
 
 	public String getThreadStatus() {
@@ -82,11 +83,9 @@ public class Channel implements Runnable {
 	public void run() {
 		while (!socket.isClosed()) {
 			try {
-				if (reader.ready()) {
-					sendTelegramToSAP(reader.readLine());
-				}
+				sendTelegramToSAP(reader.readLine());
 			} catch (IOException e) {
-				logger.catching(e);
+				logger.debug(e);
 			}
 		}
 		try {

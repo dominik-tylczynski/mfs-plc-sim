@@ -196,7 +196,6 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 
 		Bridge bridge = new Bridge(args[0], args[1]);
 		bridge.startRFCServer();
-		System.out.println("RFC server started. Ready for telegrams.");
 
 		BufferedReader keyboardReader = new BufferedReader(new InputStreamReader(System.in));
 		String inputLine = null;
