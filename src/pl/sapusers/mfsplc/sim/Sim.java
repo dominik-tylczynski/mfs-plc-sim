@@ -37,8 +37,6 @@ import com.sap.conn.jco.JCoException;
 import com.sap.conn.jco.JCoRecordMetaData;
 import com.sap.conn.jco.JCoStructure;
 
-import pl.sapusers.mfsplc.bridge.JFieldTextValidator;
-
 @SuppressWarnings("serial")
 public class Sim extends JFrame {
 	private Logger logger = LogManager.getLogger(Sim.class.getName());
@@ -50,6 +48,9 @@ public class Sim extends JFrame {
 	private boolean switchSenderReceiver;
 	private JCoRecordMetaData telegramMetadata;
 
+	private Thread processor;
+	private Thread monitor;
+	
 	private TcpServer server;
 	private TelegramsTextPane textTelegrams;
 	private JToggleButton tglbtnLife;
@@ -57,25 +58,40 @@ public class Sim extends JFrame {
 	private JToggleButton tglAutoHandshake;
 	private JButton btnSend;
 
+	class TcpIpMonitor implements Runnable {
+		@Override
+		public void run() {
+			while (server.isRunning()) {
+				
+				synchronized (server) {
+					try {
+						server.wait();
+						
+						if (server.isClientConnected()) {
+							textPort.setBackground(Color.GREEN);
+							btnSend.setEnabled(true);
+						} else {
+							textPort.setBackground(Color.YELLOW);
+							btnSend.setEnabled(false);
+						}						
+						
+					} catch (InterruptedException e) {
+						logger.debug(e);
+					}
+				}
+			}
+		}
+	}
+
 	class TcpIpProcessor implements Runnable {
 
 		@Override
 		public void run() {
 
-			
 			while (server.isRunning()) {
-
-				if (server.isClientConnected()) {
-					textPort.setBackground(Color.GREEN);
-					btnSend.setEnabled(true);
-				} else {
-					textPort.setBackground(Color.YELLOW);
-					btnSend.setEnabled(false);
-				}
-
 				String message = null;
-				if ((message = server.receiveMessage()) != null) {
-
+				try {
+					message = server.incoming.take();
 					JCoStructure telegram = JCo.createStructure(telegramMetadata);
 					telegram.setString(message);
 
@@ -92,17 +108,16 @@ public class Sim extends JFrame {
 							response.getField("SENDER").setValue(telegram.getString("RECEIVER"));
 							response.getField("RECEIVER").setValue(telegram.getString("SENDER"));
 						}
-						server.sendMessage(response.getString());
+						server.outgoing.add(response.getString());
 
 						if (response.getString("TELETYPE").equals("LIFE") && tglbtnLife.isSelected()
 								|| !response.getString("TELETYPE").equals("LIFE"))
 							textTelegrams.addTelegram(response);
 
 					}
+				} catch (InterruptedException e) {
 				}
 			}
-			textPort.setBackground(Color.WHITE);
-			btnSend.setEnabled(false);
 		}
 	}
 
@@ -258,13 +273,17 @@ public class Sim extends JFrame {
 		});
 		btnStartStop.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ac) {
+
 				if (textPort.isEditable()) {
 
 					try {
 						server = new TcpServer(Integer.parseUnsignedInt(textPort.getText()));
-						Thread thread = new Thread(new TcpIpProcessor());
-						thread.setName("Telegram processor " + thread.getName());
-						thread.start();
+						processor = new Thread(new TcpIpProcessor());
+						processor.setName("Telegram processor " + processor.getName());
+						processor.start();
+						monitor = new Thread(new TcpIpMonitor());
+						monitor.setName("Server monitor " + monitor.getName());
+						monitor.start();
 						textPort.setEditable(false);
 						textPort.setBackground(Color.YELLOW);
 						textPort.setText(Integer.toString(Integer.parseUnsignedInt(textPort.getText())));
@@ -273,13 +292,22 @@ public class Sim extends JFrame {
 						JOptionPane.showMessageDialog(null, e, "Server could not be started",
 								JOptionPane.ERROR_MESSAGE);
 						logger.catching(e);
+						
+						textPort.setEditable(true);
+						btnStartStop.setText("Start");
+						textPort.setBackground(Color.WHITE);
+						server.stopServer();
+						processor.interrupt();
+						monitor.interrupt();
 					}
 
 				} else {
+					server.stopServer();
+					processor.interrupt();
+					monitor.interrupt();
 					textPort.setEditable(true);
 					btnStartStop.setText("Start");
 					textPort.setBackground(Color.WHITE);
-					server.stopServer();
 				}
 			}
 		});
@@ -294,7 +322,7 @@ public class Sim extends JFrame {
 		btnSend.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (!textTelegram.getText().equals("")) {
-					server.sendMessage(textTelegram.getText());
+					server.outgoing.add(textTelegram.getText());
 					textTelegrams.addTelegram(textTelegram.getText());
 					textTelegram.setText("");
 				}

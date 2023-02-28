@@ -7,20 +7,29 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class TcpServer {
+	private static final int QUEUE_SIZE = 1000;
+	public static final String STATUS_STOPPED = "0";
+	public static final String STATUS_STARTED = "1";
+	public static final String STATUS_CONNECTED = "2";
+
 	private Logger logger = LogManager.getLogger(TcpServer.class.getName());
 	private ServerSocket serverSocket;
 	private Socket socket;
-	private ArrayList<String> received = new ArrayList<String>();
-	private ArrayList<String> outgoing = new ArrayList<String>();
+
+	private Thread senderThread;
+	private Thread receiverThread;
+
+	public ArrayBlockingQueue<String> incoming = new ArrayBlockingQueue<String>(QUEUE_SIZE);
+	public ArrayBlockingQueue<String> outgoing = new ArrayBlockingQueue<String>(QUEUE_SIZE);
 
 	class MfsSocketSender implements Runnable {
-
+		
 		@Override
 		public void run() {
 			try {
@@ -28,13 +37,14 @@ public class TcpServer {
 
 				while (!socket.isClosed()) {
 					// Send messages from server to client
-					if (outgoing.size() > 0) {
-						String out = outgoing.get(0);
+					try {
+						String out = outgoing.take();
 						logger.debug("TCP server thread received: " + out);
 						toClient.write(out + "\n");
 						toClient.flush();
 						logger.debug("Send to TCP client: " + out);
-						outgoing.remove(0);
+					} catch (InterruptedException e) {
+						logger.debug(e);
 					}
 				}
 				toClient.close();
@@ -53,7 +63,11 @@ public class TcpServer {
 					socket = serverSocket.accept();
 					logger.info("Client connected");
 
-					Thread senderThread = new Thread(new MfsSocketSender());
+					synchronized(TcpServer.this) {
+						TcpServer.this.notifyAll();
+					}
+
+					senderThread = new Thread(new MfsSocketSender());
 					senderThread.setName("Socket Sender " + senderThread.getName());
 					senderThread.start();
 
@@ -65,15 +79,28 @@ public class TcpServer {
 						if (message == null) {
 							logger.info("TCP client disconnected");
 							socket.close();
+							
+							synchronized(TcpServer.this) {
+								TcpServer.this.notifyAll();
+							}
+							
 						} else {
 							logger.debug("Received from TCP client: " + message);
-							received.add(message);
-							logger.debug("Number of received message in the buffer: " + received.size());
+							incoming.add(message);
+							logger.debug("Number of received message in the buffer: " + incoming.size());
 						}
 					}
 					fromClient.close();
-				} catch (IOException e) {
+					senderThread.interrupt();
+					
+					synchronized(TcpServer.this) {
+						TcpServer.this.notifyAll();
+					}
+					
+				} catch (IOException | IllegalStateException e) {
 					logger.debug(e);
+					if (senderThread != null)
+						senderThread.interrupt();
 				}
 			}
 		}
@@ -81,22 +108,9 @@ public class TcpServer {
 
 	public TcpServer(int port) throws IOException {
 		serverSocket = new ServerSocket(port);
-		Thread receiverThread = new Thread(new MfsSocketReceiver());
+		receiverThread = new Thread(new MfsSocketReceiver());
 		receiverThread.setName("Socket Receiver " + receiverThread.getName());
 		receiverThread.start();
-	}
-
-	public void sendMessage(String message) {
-		outgoing.add(message);
-	}
-
-	public String receiveMessage() {
-		if (received.size() > 0) {
-			String message = received.get(0);
-			received.remove(0);
-			return message;
-		} else
-			return null;
 	}
 
 	public void stopServer() {
@@ -105,6 +119,7 @@ public class TcpServer {
 			if (socket != null)
 				socket.close();
 			serverSocket.close();
+			receiverThread.interrupt();
 			logger.debug("Server socket closed");
 		} catch (IOException e) {
 			logger.catching(e);
@@ -114,13 +129,13 @@ public class TcpServer {
 	public boolean isRunning() {
 		return !serverSocket.isClosed();
 	}
-
+	
 	public boolean isClientConnected() {
 		if (socket == null)
 			return false;
 		else
 			return !socket.isClosed();
-	}
+	}	
 
 	public static void main(String args[]) throws IOException {
 		TcpServer tcpServer = null;
@@ -137,11 +152,17 @@ public class TcpServer {
 						tcpServer.stopServer();
 						System.exit(0);
 					}
-					tcpServer.sendMessage(message);
+					tcpServer.outgoing.add(message);
 				}
-			} catch (IOException e) {
+			} catch (IOException | IllegalStateException e) {
 			}
-			String message = tcpServer.receiveMessage();
+			String message;
+			try {
+				message = tcpServer.incoming.take();
+			} catch (InterruptedException e) {
+				message = null;
+				e.printStackTrace();
+			}
 			if (message != null) {
 				System.out.println("Main received: " + message);
 			}
