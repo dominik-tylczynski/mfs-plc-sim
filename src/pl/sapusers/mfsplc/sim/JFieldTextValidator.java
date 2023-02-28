@@ -1,4 +1,4 @@
-package pl.sapusers.mfsplc.bridge;
+package pl.sapusers.mfsplc.sim;
 
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;

@@ -23,8 +23,6 @@ import com.sap.conn.jco.JCoField;
 import com.sap.conn.jco.JCoRecordField;
 import com.sap.conn.jco.JCoRecordFieldIterator;
 
-import pl.sapusers.mfsplc.bridge.JFieldTextValidator;
-
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 

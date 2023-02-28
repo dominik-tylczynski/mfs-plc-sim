@@ -37,8 +37,6 @@ import com.sap.conn.jco.JCoException;
 import com.sap.conn.jco.JCoRecordMetaData;
 import com.sap.conn.jco.JCoStructure;
 
-import pl.sapusers.mfsplc.bridge.JFieldTextValidator;
-
 @SuppressWarnings("serial")
 public class Sim extends JFrame {
 	private Logger logger = LogManager.getLogger(Sim.class.getName());
