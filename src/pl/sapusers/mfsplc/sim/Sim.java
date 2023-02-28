@@ -53,8 +53,6 @@ public class Sim extends JFrame {
 	private Thread processor;
 	private Thread monitor;
 	
-	private String status = new String();
-
 	private TcpServer server;
 	private TelegramsTextPane textTelegrams;
 	private JToggleButton tglbtnLife;
@@ -63,37 +61,25 @@ public class Sim extends JFrame {
 	private JButton btnSend;
 
 	class TcpIpMonitor implements Runnable {
-		private String status;
-
-		public TcpIpMonitor(String status) {
-			this.status = status;
-		}
-
 		@Override
 		public void run() {
 			while (server.isRunning()) {
 				
-				synchronized (status) {
+				synchronized (server) {
 					try {
-						status.wait();
+						server.wait();
+						
+						if (server.isClientConnected()) {
+							textPort.setBackground(Color.GREEN);
+							btnSend.setEnabled(true);
+						} else {
+							textPort.setBackground(Color.YELLOW);
+							btnSend.setEnabled(false);
+						}						
+						
 					} catch (InterruptedException e) {
 						logger.debug(e);
 					}
-				}
-
-				switch (status) {
-				case TcpServer.STATUS_STOPPED:
-					textPort.setBackground(Color.WHITE);
-					btnSend.setEnabled(false);
-					break;
-				case TcpServer.STATUS_STARTED:
-					textPort.setBackground(Color.YELLOW);
-					btnSend.setEnabled(false);
-					break;
-				case TcpServer.STATUS_CONNECTED:
-					textPort.setBackground(Color.GREEN);
-					btnSend.setEnabled(true);
-					break;
 				}
 			}
 		}
@@ -293,11 +279,11 @@ public class Sim extends JFrame {
 				if (textPort.isEditable()) {
 
 					try {
-						server = new TcpServer(Integer.parseUnsignedInt(textPort.getText()), status);
+						server = new TcpServer(Integer.parseUnsignedInt(textPort.getText()));
 						processor = new Thread(new TcpIpProcessor());
 						processor.setName("Telegram processor " + processor.getName());
 						processor.start();
-						monitor = new Thread(new TcpIpMonitor(status));
+						monitor = new Thread(new TcpIpMonitor());
 						monitor.setName("Server monitor " + monitor.getName());
 						monitor.start();
 						textPort.setEditable(false);
@@ -308,15 +294,22 @@ public class Sim extends JFrame {
 						JOptionPane.showMessageDialog(null, e, "Server could not be started",
 								JOptionPane.ERROR_MESSAGE);
 						logger.catching(e);
+						
+						textPort.setEditable(true);
+						btnStartStop.setText("Start");
+						textPort.setBackground(Color.WHITE);
+						server.stopServer();
+						processor.interrupt();
+						monitor.interrupt();
 					}
 
 				} else {
-					textPort.setEditable(true);
-					btnStartStop.setText("Start");
-					textPort.setBackground(Color.WHITE);
 					server.stopServer();
 					processor.interrupt();
 					monitor.interrupt();
+					textPort.setEditable(true);
+					btnStartStop.setText("Start");
+					textPort.setBackground(Color.WHITE);
 				}
 			}
 		});
