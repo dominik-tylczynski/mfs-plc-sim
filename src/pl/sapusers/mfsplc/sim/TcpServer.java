@@ -14,9 +14,6 @@ import org.apache.logging.log4j.Logger;
 
 public class TcpServer {
 	private static final int QUEUE_SIZE = 1000;
-	public static final String STATUS_STOPPED = "0";
-	public static final String STATUS_STARTED = "1";
-	public static final String STATUS_CONNECTED = "2";
 
 	private Logger logger = LogManager.getLogger(TcpServer.class.getName());
 	private ServerSocket serverSocket;
