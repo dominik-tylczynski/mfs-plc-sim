@@ -37,11 +37,14 @@ import com.sap.conn.jco.JCoException;
 import com.sap.conn.jco.JCoRecordMetaData;
 import com.sap.conn.jco.JCoStructure;
 
+import pl.sapusers.mfsplc.Configurator;
+
 @SuppressWarnings("serial")
 public class Sim extends JFrame {
 	private Logger logger = LogManager.getLogger(Sim.class.getName());
 
 // Configuration
+	private Configurator configurator;
 	private Properties configuration;
 	private String handshakeRequest;
 	private String handshakeConfirmation;
@@ -50,7 +53,7 @@ public class Sim extends JFrame {
 
 	private Thread processor;
 	private Thread monitor;
-	
+
 	private TcpServer server;
 	private TelegramsTextPane textTelegrams;
 	private JToggleButton tglbtnLife;
@@ -62,19 +65,19 @@ public class Sim extends JFrame {
 		@Override
 		public void run() {
 			while (server.isRunning()) {
-				
+
 				synchronized (server) {
 					try {
 						server.wait();
-						
+
 						if (server.isClientConnected()) {
 							textPort.setBackground(Color.GREEN);
 							btnSend.setEnabled(true);
 						} else {
 							textPort.setBackground(Color.YELLOW);
 							btnSend.setEnabled(false);
-						}						
-						
+						}
+
 					} catch (InterruptedException e) {
 						logger.debug(e);
 					}
@@ -165,15 +168,19 @@ public class Sim extends JFrame {
 	 */
 	public static void main(String[] args) {
 
-		if (args.length != 2) {
-			printUsage();
-			System.exit(0);
-		}
-
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
+				Sim frame = null;
 				try {
-					Sim frame = new Sim(args[0], args[1]);
+					if (args.length == 1)
+						frame = new Sim(new Configurator(args[0], null, null));
+					else if (args.length == 2)
+						frame = new Sim(new Configurator(args[1], args[0], null));
+					else {
+						printUsage();
+						System.exit(0);
+					}
+					
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -185,8 +192,7 @@ public class Sim extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public Sim(String destination, String configProperties) {
-		loadConfiguration(destination, configProperties);
+	public Sim(Configurator configurator) {
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 823, 558);
@@ -292,7 +298,7 @@ public class Sim extends JFrame {
 						JOptionPane.showMessageDialog(null, e, "Server could not be started",
 								JOptionPane.ERROR_MESSAGE);
 						logger.catching(e);
-						
+
 						textPort.setEditable(true);
 						btnStartStop.setText("Start");
 						textPort.setBackground(Color.WHITE);
