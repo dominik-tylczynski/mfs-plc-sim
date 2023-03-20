@@ -92,12 +92,12 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 //		*"  TABLES
 //		*"      CT_DATA TYPE  /SCWM/TT_MFS_TELE
 //		*"----------------------------------------------------------------------		
-			JCoListMetaData imports = JCo.createListMetaData("IV_COMMAND");
+			JCoListMetaData imports = JCo.createListMetaData("INPUT");
 			imports.add("IV_COMMAND", JCoListMetaData.TYPE_CHAR, customRepository.getRecordMetaData("CHAR20"),
 					JCoListMetaData.IMPORT_PARAMETER);
 			imports.lock();
 
-			JCoListMetaData tables = JCo.createListMetaData("CT_DATA");
+			JCoListMetaData tables = JCo.createListMetaData("TABLES");
 			tables.add("CT_DATA", JCoListMetaData.TYPE_TABLE, customRepository.getRecordMetaData("/SCWM/TT_MFS_TELE"),
 					0);
 			tables.lock();
@@ -278,7 +278,7 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 			case 2: // iv_command = SEND, telegram content, iv_command = START, telegram end char
 				telegramString = ct_data.getString();
 				break;
-			case 4: // iv_command = SEND, telegram length
+			case 3: // iv_command = SEND, telegram length
 				telegramString = telegramString + " " + ct_data.getString();
 				break;
 			}
