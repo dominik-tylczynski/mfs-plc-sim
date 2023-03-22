@@ -17,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.sap.conn.jco.AbapClassException;
 import com.sap.conn.jco.AbapException;
+import com.sap.conn.jco.ConversionException;
 import com.sap.conn.jco.JCo;
 import com.sap.conn.jco.JCoCustomRepository;
 import com.sap.conn.jco.JCoDestinationManager;
@@ -295,13 +296,21 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 
 		try {
 			iv_command = function.getImportParameterList().getString("IV_COMMAND");
+			logger.trace("IV_COMMAND = " + iv_command);
+		} catch (ConversionException e) {
+			logger.debug(e);
+			throw (e);
 		} catch (JCoRuntimeException e) {
 			logger.debug(e);
 			throw (e);
-		}
+		}	
 
 		try {
 			ct_data = function.getTableParameterList().getTable("CT_DATA");
+			logger.trace("CT_DATA = \n" + ct_data);
+		} catch (ConversionException e) {
+			logger.debug(e);
+			throw (e);
 		} catch (JCoRuntimeException e) {
 			logger.debug(e);
 			throw (e);
