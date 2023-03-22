@@ -1,8 +1,10 @@
 package pl.sapusers.mfsplc.bridge;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -115,8 +117,9 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 //		*"      CT_DATA TYPE  /SCWM/TT_MFS_TELE
 //		*"----------------------------------------------------------------------		
 			JCoListMetaData imports = JCo.createListMetaData("INPUT");
-			imports.add("IV_COMMAND", JCoListMetaData.TYPE_CHAR, customRepository.getRecordMetaData("CHAR20"),
-					JCoListMetaData.IMPORT_PARAMETER);
+//			imports.add("IV_COMMAND", JCoListMetaData.TYPE_CHAR, customRepository.getRecordMetaData("CHAR20"),
+//					JCoListMetaData.IMPORT_PARAMETER);
+			imports.add("IV_COMMAND", JCoListMetaData.TYPE_CHAR, 20, 40, JCoListMetaData.IMPORT_PARAMETER);
 			imports.lock();
 
 			JCoListMetaData tables = JCo.createListMetaData("TABLES");
@@ -131,11 +134,18 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 			logger.catching(e);
 		}
 
+//		try {
+//			customRepository.addFunctionTemplateToCache(customRepository.getFunctionTemplate("RFC_EXECUTE_COMMAND_1"));
+//		} catch (JCoException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+
 		server.setRepository(customRepository);
 
 // to test - save repository in json file	
 //		try {
-//			FileWriter writer = new FileWriter(new File("test1.json").getAbsolutePath());
+//			FileWriter writer = new FileWriter(new File("test3.json").getAbsolutePath());
 //			customRepository.save(writer);
 //			writer.close();
 //		} catch (IOException e) {
@@ -277,13 +287,26 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 //		*"----------------------------------------------------------------------			
 
 		String iv_command;
+		JCoTable ct_data;
+
 		String telegramString = new String();
 		String address = new String();
 		String port = new String();
 
-		iv_command = function.getImportParameterList().getString("IV_COMMAND");
+		try {
+			iv_command = function.getImportParameterList().getString("IV_COMMAND");
+		} catch (JCoRuntimeException e) {
+			logger.debug(e);
+			throw (e);
+		}
 
-		JCoTable ct_data = function.getTableParameterList().getTable("CT_DATA");
+		try {
+			ct_data = function.getTableParameterList().getTable("CT_DATA");
+		} catch (JCoRuntimeException e) {
+			logger.debug(e);
+			throw (e);
+		}
+
 		for (int i = 0; i < ct_data.getNumRows(); i++) {
 			ct_data.setRow(i);
 			switch (i) {
