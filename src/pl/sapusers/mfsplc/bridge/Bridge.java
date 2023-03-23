@@ -298,10 +298,10 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 			iv_command = function.getImportParameterList().getString("IV_COMMAND");
 			logger.trace("IV_COMMAND = " + iv_command);
 		} catch (ConversionException e) {
-			logger.debug(e);
+			logger.error(e);
 			throw (e);
 		} catch (JCoRuntimeException e) {
-			logger.debug(e);
+			logger.error(e);
 			throw (e);
 		}	
 
@@ -309,10 +309,10 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 			ct_data = function.getTableParameterList().getTable("CT_DATA");
 			logger.trace("CT_DATA = \n" + ct_data);
 		} catch (ConversionException e) {
-			logger.debug(e);
+			logger.error(e);
 			throw (e);
 		} catch (JCoRuntimeException e) {
-			logger.debug(e);
+			logger.error(e);
 			throw (e);
 		}
 
@@ -320,16 +320,37 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 			ct_data.setRow(i);
 			switch (i) {
 			case 0: // IP address
-				address = ct_data.getString();
+				try {
+					address = ct_data.getString();
+				} catch (ConversionException e) {
+					logger.error(e);
+					throw (e);
+				}
 				break;
 			case 1: // port number
-				port = ct_data.getString();
+				try {
+					port = ct_data.getString();
+				} catch (ConversionException e) {
+					logger.error(e);
+					throw (e);
+				}
 				break;
 			case 2: // iv_command = SEND, telegram content, iv_command = START, telegram end char
-				telegramString = ct_data.getString();
+				try {
+					telegramString = ct_data.getString();
+				} catch (ConversionException e) {
+					logger.error(e);
+					throw (e);
+				}
 				break;
 			case 3: // iv_command = SEND, telegram length
-				telegramString = telegramString + " " + ct_data.getString();
+				try {
+					//TODO - handle or ignore telegram length
+					telegramString = telegramString + " " + ct_data.getString();
+				} catch (ConversionException e) {
+					logger.error(e);
+					throw (e);
+				}
 				break;
 			}
 		}
