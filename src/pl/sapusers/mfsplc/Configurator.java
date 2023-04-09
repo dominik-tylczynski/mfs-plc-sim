@@ -14,8 +14,25 @@ import org.apache.logging.log4j.Logger;
 import pl.sapusers.mfsplc.sim.TelegramStyle;
 
 public class Configurator {
+	@SuppressWarnings("unused")
+	public static void main(String[] args) {
+		Configurator configurator;
+
+		switch (args.length) {
+		case 1:
+			configurator = new Configurator(args[0], null, null);
+			break;
+		case 2:
+			configurator = new Configurator(args[0], args[1], null);
+			break;
+		case 3:
+			configurator = new Configurator(args[0], args[1], args[2]);
+			break;
+		}
+	}
 	private Logger logger = LogManager.getLogger(Configurator.class.getName());
 	private Properties configProperties;
+
 	private String configPropertiesFileName;
 
 	public Configurator(String configPropertiesFileName, String jcoDestination, String jcoServer) {
@@ -49,13 +66,34 @@ public class Configurator {
 		}
 	}
 
-	private String getProperty(String property) {
-		String value = configProperties.getProperty(property);
+	public String getHandshakeConfirmation() {
+		return getProperty("handshakeConfirmation");
+	}
 
-		if (value == null || value.equals(""))
-			logger.error("Property " + property + " not defined in the config file: " + configPropertiesFileName);
+	public String getHandshakeRequest() {
+		return getProperty("handshakeRequest");
+	}
 
-		return value;
+	public String getTelegramStructureHeader() {
+		return getProperty("telegramStructureHeader");
+	}	
+	
+	public String getTelegramStructure(String telegramType) {
+		String value = configProperties.getProperty("telegramStructure." + telegramType);	
+		if (value == null || value.equals("")) {
+			logger.debug("Telegram type " + telegramType + " structure not defined. Getting default structure from telegramStructure.*");
+			return getProperty("telegramStructure.*");
+		} else {
+			return value;
+		}	
+	}
+	
+	public String getJCoDestination() {
+		return getProperty("jcoDestination");
+	}
+
+	public String getJCoServer() {
+		return getProperty("jcoServer");
 	}
 
 	public String getSendingFM() {
@@ -66,33 +104,25 @@ public class Configurator {
 		return getProperty("startingFM");
 	}
 
-	public String getStoppingFM() {
-		return getProperty("stoppingFM");
-	}
-
 	public String getStatusFM() {
 		return getProperty("statusFM");
 	}
 
-	public String getJCoDestination() {
-		return getProperty("jcoDestination");
+	public String getStoppingFM() {
+		return getProperty("stoppingFM");
 	}
-
-	public String getJCoServer() {
-		return getProperty("jcoServer");
-	}
-
+	
 	public Boolean getSwitchSenderReceiver() {
 		return Boolean.parseBoolean(getProperty("switchSenderReceiver"));
 	}
-
+	
 	public List<TelegramStyle> getTelegramStyles() {
 		List<TelegramStyle> styles = new ArrayList<TelegramStyle>();
 
 		Set<String> propertyKeys = configProperties.stringPropertyNames();
 
 		for (String propertyKey : propertyKeys) {
-			if (propertyKey.contains("Style")) {
+			if (propertyKey.contains("style")) {
 				styles.add(new TelegramStyle(propertyKey, configProperties.getProperty(propertyKey)));
 			}
 		}
@@ -100,21 +130,17 @@ public class Configurator {
 		return styles;
 	}
 
-	@SuppressWarnings("unused")
-	public static void main(String[] args) {
-		Configurator configurator;
+	public String getTelegramType(String type) {
+		return getProperty("telegramType" + type);
+	}
+	
+	private String getProperty(String property) {
+		String value = configProperties.getProperty(property);
 
-		switch (args.length) {
-		case 1:
-			configurator = new Configurator(args[0], null, null);
-			break;
-		case 2:
-			configurator = new Configurator(args[0], args[1], null);
-			break;
-		case 3:
-			configurator = new Configurator(args[0], args[1], args[2]);
-			break;
-		}
+		if (value == null || value.equals(""))
+			logger.error("Property " + property + " not defined in the config file: " + configPropertiesFileName);
+
+		return value;
 	}
 
 }

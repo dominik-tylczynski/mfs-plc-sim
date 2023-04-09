@@ -8,10 +8,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Properties;
+import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -32,8 +30,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.sap.conn.jco.JCo;
-import com.sap.conn.jco.JCoDestinationManager;
-import com.sap.conn.jco.JCoException;
 import com.sap.conn.jco.JCoRecordMetaData;
 import com.sap.conn.jco.JCoStructure;
 
@@ -43,14 +39,9 @@ import pl.sapusers.mfsplc.Configurator;
 public class Sim extends JFrame {
 	private Logger logger = LogManager.getLogger(Sim.class.getName());
 
-// Configuration
 	private Configurator configurator;
-	private Properties configuration;
-	private String handshakeRequest;
-	private String handshakeConfirmation;
-	private boolean switchSenderReceiver;
-	private JCoRecordMetaData telegramMetadata;
-
+	private JCoRecordMetaData telegramMetadata; // TODO remove
+	private ArrayList<Telegram> telegrams;
 	private Thread processor;
 	private Thread monitor;
 
@@ -98,23 +89,26 @@ public class Sim extends JFrame {
 					JCoStructure telegram = JCo.createStructure(telegramMetadata);
 					telegram.setString(message);
 
-					if (telegram.getString("TELETYPE").equals("LIFE") && tglbtnLife.isSelected()
-							|| !telegram.getString("TELETYPE").equals("LIFE"))
+					if (telegram.getString("TELETYPE").equals(configurator.getTelegramType("LIFE"))
+							&& tglbtnLife.isSelected()
+							|| !telegram.getString("TELETYPE").equals(configurator.getTelegramType("LIFE")))
 						textTelegrams.addTelegram(telegram);
 
 					// send acknowledge telegram if needed
-					if (telegram.getString("HANDSHAKE").equals(handshakeRequest) && tglAutoHandshake.isSelected()) {
+					if (telegram.getString("HANDSHAKE").equals(configurator.getHandshakeRequest())
+							&& tglAutoHandshake.isSelected()) {
 						JCoStructure response = (JCoStructure) telegram.clone();
-						response.getField("HANDSHAKE").setValue(handshakeConfirmation);
+						response.getField("HANDSHAKE").setValue(configurator.getHandshakeConfirmation());
 
-						if (switchSenderReceiver) {
+						if (configurator.getSwitchSenderReceiver()) {
 							response.getField("SENDER").setValue(telegram.getString("RECEIVER"));
 							response.getField("RECEIVER").setValue(telegram.getString("SENDER"));
 						}
 						server.outgoing.add(response.getString());
 
-						if (response.getString("TELETYPE").equals("LIFE") && tglbtnLife.isSelected()
-								|| !response.getString("TELETYPE").equals("LIFE"))
+						if (response.getString("TELETYPE").equals(configurator.getTelegramType("LIFE"))
+								&& tglbtnLife.isSelected()
+								|| !response.getString("TELETYPE").equals(configurator.getTelegramType("LIFE")))
 							textTelegrams.addTelegram(response);
 
 					}
@@ -128,39 +122,6 @@ public class Sim extends JFrame {
 		System.out.println("Run MfsSim providing two arguments:");
 		System.out.println("  1. name of SAP server");
 		System.out.println("  2. properties file with MfsSim configuration");
-	}
-
-	private void loadConfiguration(String destination, String configProperties) {
-		// Load configuration from properties file
-		configuration = new Properties();
-		logger.debug("Loading properites file: " + configProperties);
-		try (FileInputStream propertiesFile = new FileInputStream(configProperties)) {
-			configuration.load(propertiesFile);
-		} catch (FileNotFoundException e) {
-			logger.catching(e);
-		} catch (IOException e) {
-			logger.catching(e);
-		}
-
-		// Get handshake request and confirmation strings
-		handshakeRequest = configuration.getProperty("handshakeRequest");
-		if (handshakeRequest == null || handshakeRequest.equals(""))
-			logger.error("Handshake request not defined in the config file: " + configProperties);
-
-		handshakeConfirmation = configuration.getProperty("handshakeConfirmation");
-		if (handshakeConfirmation == null || handshakeConfirmation.equals(""))
-			logger.error("Handshake confirmation not defined in the config file: " + configProperties);
-
-		// Get sender / receiver switch setting
-		switchSenderReceiver = Boolean.parseBoolean(configuration.getProperty("switchSenderReceiver"));
-
-		// Get JCo metadata of telegram structure
-		try {
-			telegramMetadata = JCoDestinationManager.getDestination(destination).getRepository()
-					.getStructureDefinition(configuration.getProperty("telegramStructure"));
-		} catch (JCoException e) {
-			logger.throwing(e);
-		}
 	}
 
 	/**
@@ -180,7 +141,7 @@ public class Sim extends JFrame {
 						printUsage();
 						System.exit(0);
 					}
-					
+
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -193,6 +154,7 @@ public class Sim extends JFrame {
 	 * Create the frame.
 	 */
 	public Sim(Configurator configurator) {
+		this.configurator = configurator;
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 823, 558);
@@ -237,7 +199,7 @@ public class Sim extends JFrame {
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 		TelegramPanel.add(scrollPane, BorderLayout.CENTER);
 
-		textTelegrams = new TelegramsTextPane(configuration, telegramMetadata, scrollPane);
+		textTelegrams = new TelegramsTextPane(this.configurator, telegramMetadata, scrollPane);
 
 		JPanel TopPanel = new JPanel();
 		TopPanel.setBorder(new TitledBorder(null, "Controls", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -275,6 +237,7 @@ public class Sim extends JFrame {
 		btnClear.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				textTelegrams.setText(null);
+				telegrams.clear();
 			}
 		});
 		btnStartStop.addActionListener(new ActionListener() {

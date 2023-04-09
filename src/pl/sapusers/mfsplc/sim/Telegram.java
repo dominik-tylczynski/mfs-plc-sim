@@ -1,4 +1,4 @@
-package pl.sapusers.mfsplc.bridge;
+package pl.sapusers.mfsplc.sim;
 
 import com.sap.conn.jco.JCo;
 import com.sap.conn.jco.JCoException;
