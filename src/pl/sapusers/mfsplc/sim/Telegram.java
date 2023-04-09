@@ -14,35 +14,43 @@ import com.sap.conn.jco.JCoStructure;
 import pl.sapusers.mfsplc.Configurator;
 
 public class Telegram {
-	private Logger logger = LogManager.getLogger(Telegram.class.getName());
-
 	public static final String TO_SAP = "outbound";
 	public static final String FROM_SAP = "inbound";
+	private Logger logger = LogManager.getLogger(Telegram.class.getName());
 
 	private JCoStructure telegramContent;
 	private LocalDateTime timeStamp;
+	private String direction;
 
-	public Telegram(JCoStructure telegramContent) {
-		this.telegramContent = telegramContent;
-		timeStamp = LocalDateTime.now();
-	}
-
-	public Telegram(Configurator configurator, String telegramString) {
+	public Telegram(Configurator configurator, String telegramString, String direction) {
 		try {
 			JCoStructure header = JCo
 					.createStructure(JCoDestinationManager.getDestination(configurator.getJCoDestination())
 							.getRepository().getStructureDefinition(configurator.getTelegramStructureHeader()));
+
+			header.setString(telegramString);
 			
 			telegramContent = JCo
 					.createStructure(JCoDestinationManager.getDestination(configurator.getJCoDestination())
 							.getRepository().getStructureDefinition(header.getString("TELETYPE")));
-			
+
 			telegramContent.setString(telegramString);
 			timeStamp = LocalDateTime.now();
-			
+			this.direction = direction;
+
 		} catch (IllegalArgumentException | JCoException e) {
 			logger.error(e);
 		}
+	}
+
+	public Telegram(JCoStructure telegramContent, String direction) {
+		this.telegramContent = telegramContent;
+		timeStamp = LocalDateTime.now();
+		this.direction = direction;
+	}
+
+	public String getDirection() {
+		return direction;
 	}
 
 	public String getField(String field) {

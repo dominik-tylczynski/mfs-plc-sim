@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,9 +15,8 @@ import org.apache.logging.log4j.Logger;
 import pl.sapusers.mfsplc.sim.TelegramStyle;
 
 public class Configurator {
-	@SuppressWarnings("unused")
 	public static void main(String[] args) {
-		Configurator configurator;
+		Configurator configurator = null;
 
 		switch (args.length) {
 		case 1:
@@ -29,11 +29,16 @@ public class Configurator {
 			configurator = new Configurator(args[0], args[1], args[2]);
 			break;
 		}
+		
+		System.out.println(configurator.getHandshakeRequest());
+		System.out.println(configurator.getHandshakeRequest());
+		System.out.println(configurator.getHandshakeRequest());
+		System.out.println(configurator.getSendingFM());
 	}
-	private Logger logger = LogManager.getLogger(Configurator.class.getName());
 	private Properties configProperties;
-
 	private String configPropertiesFileName;
+
+	private Logger logger = LogManager.getLogger(Configurator.class.getName());
 
 	public Configurator(String configPropertiesFileName, String jcoDestination, String jcoServer) {
 		this.configPropertiesFileName = configPropertiesFileName;
@@ -59,11 +64,10 @@ public class Configurator {
 			configProperties.setProperty("jcoServer", jcoServer);
 		}
 
-		Set<String> propertyKeys = configProperties.stringPropertyNames();
-
-		for (String propertyKey : propertyKeys) {
+		for (String propertyKey : new TreeSet<String>(configProperties.stringPropertyNames())) {
 			logger.debug(propertyKey + " = " + configProperties.getProperty(propertyKey));
 		}
+		
 	}
 
 	public String getHandshakeConfirmation() {
@@ -74,28 +78,14 @@ public class Configurator {
 		return getProperty("handshakeRequest");
 	}
 
-	public String getTelegramStructureHeader() {
-		return getProperty("telegramStructureHeader");
-	}	
-	
-	public String getTelegramStructure(String telegramType) {
-		String value = configProperties.getProperty("telegramStructure." + telegramType);	
-		if (value == null || value.equals("")) {
-			logger.debug("Telegram type " + telegramType + " structure not defined. Getting default structure from telegramStructure.*");
-			return getProperty("telegramStructure.*");
-		} else {
-			return value;
-		}	
-	}
-	
 	public String getJCoDestination() {
 		return getProperty("jcoDestination");
-	}
-
+	}	
+	
 	public String getJCoServer() {
 		return getProperty("jcoServer");
 	}
-
+	
 	public String getSendingFM() {
 		return getProperty("sendingFM");
 	}
@@ -111,9 +101,23 @@ public class Configurator {
 	public String getStoppingFM() {
 		return getProperty("stoppingFM");
 	}
-	
+
 	public Boolean getSwitchSenderReceiver() {
 		return Boolean.parseBoolean(getProperty("switchSenderReceiver"));
+	}
+
+	public String getTelegramStructure(String telegramType) {
+		String value = configProperties.getProperty("telegramStructure." + telegramType);	
+		if (value == null || value.equals("")) {
+			logger.debug("Telegram type " + telegramType + " structure not defined. Getting default structure from telegramStructure.*");
+			return getProperty("telegramStructure.*");
+		} else {
+			return value;
+		}	
+	}
+	
+	public String getTelegramStructureHeader() {
+		return getProperty("telegramStructureHeader");
 	}
 	
 	public List<TelegramStyle> getTelegramStyles() {
