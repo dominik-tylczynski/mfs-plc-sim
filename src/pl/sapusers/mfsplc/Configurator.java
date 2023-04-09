@@ -15,35 +15,45 @@ import pl.sapusers.mfsplc.sim.TelegramStyle;
 
 public class Configurator {
 	private Logger logger = LogManager.getLogger(Configurator.class.getName());
-	private Properties config;
-	private String configProperties;
+	private Properties configProperties;
+	private String configPropertiesFileName;
 
-	public Configurator(String configProperties, String jcoDestination, String jcoServer) {
-		this.configProperties = configProperties;
+	public Configurator(String configPropertiesFileName, String jcoDestination, String jcoServer) {
+		this.configPropertiesFileName = configPropertiesFileName;
 
 		// Load configuration from properties file
-		config = new Properties();
-		logger.debug("Loading properites file: " + configProperties);
-		try (FileInputStream propertiesFile = new FileInputStream(configProperties)) {
-			config.load(propertiesFile);
+		configProperties = new Properties();
+		logger.debug("Loading properites file: " + configPropertiesFileName);
+		try (FileInputStream propertiesFile = new FileInputStream(configPropertiesFileName)) {
+			configProperties.load(propertiesFile);
 		} catch (FileNotFoundException e) {
 			logger.catching(e);
 		} catch (IOException e) {
 			logger.catching(e);
 		}
-		
-		if (jcoDestination != null && !jcoDestination.equals("")) 
-			config.setProperty("jcoDestination", jcoDestination);
-		
-		if (jcoServer != null && !jcoServer.equals("")) 
-			config.setProperty("jcoServer", jcoServer);		
+
+		if (jcoDestination != null && !jcoDestination.equals("")) {
+			logger.debug("jcoDestination specified directly: " + jcoDestination);
+			configProperties.setProperty("jcoDestination", jcoDestination);
+		}
+
+		if (jcoServer != null && !jcoServer.equals("")) {
+			logger.debug("jcoServer specified directly: " + jcoServer);
+			configProperties.setProperty("jcoServer", jcoServer);
+		}
+
+		Set<String> propertyKeys = configProperties.stringPropertyNames();
+
+		for (String propertyKey : propertyKeys) {
+			logger.debug(propertyKey + " = " + configProperties.getProperty(propertyKey));
+		}
 	}
 
 	private String getProperty(String property) {
-		String value = config.getProperty(property);
+		String value = configProperties.getProperty(property);
 
 		if (value == null || value.equals(""))
-			logger.error(value + " request not defined in the config file: " + configProperties);
+			logger.error("Property " + property + " not defined in the config file: " + configPropertiesFileName);
 
 		return value;
 	}
@@ -79,20 +89,32 @@ public class Configurator {
 	public List<TelegramStyle> getTelegramStyles() {
 		List<TelegramStyle> styles = new ArrayList<TelegramStyle>();
 
-		Set<String> propertyKeys = config.stringPropertyNames();
+		Set<String> propertyKeys = configProperties.stringPropertyNames();
 
 		for (String propertyKey : propertyKeys) {
 			if (propertyKey.contains("Style")) {
-				styles.add(new TelegramStyle(propertyKey, config.getProperty(propertyKey)));
+				styles.add(new TelegramStyle(propertyKey, configProperties.getProperty(propertyKey)));
 			}
 		}
 
 		return styles;
 	}
 
+	@SuppressWarnings("unused")
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+		Configurator configurator;
 
+		switch (args.length) {
+		case 1:
+			configurator = new Configurator(args[0], null, null);
+			break;
+		case 2:
+			configurator = new Configurator(args[0], args[1], null);
+			break;
+		case 3:
+			configurator = new Configurator(args[0], args[1], args[2]);
+			break;
+		}
 	}
 
 }

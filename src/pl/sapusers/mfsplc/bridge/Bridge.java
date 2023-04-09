@@ -39,19 +39,15 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 	private Logger logger = LogManager.getLogger(Bridge.class.getName());
 
 	private JCoServer server;
-
-// configuration settings	
-	private String sendingFM;
-	private String startingFM;
-	private String stoppingFM;
-	private String statusFM;
+	private Configurator configurator;
 
 // communication channels 
 	Map<String, Channel> channels = new HashMap<>();
 
 	public Bridge(Configurator configurator) throws JCoException {
+		this.configurator = configurator;
 
-		this.server = JCoServerFactory.getServer(configurator.getJCoServer());
+		this.server = JCoServerFactory.getServer(this.configurator.getJCoServer());
 
 		buildCustomRepository();
 
@@ -154,7 +150,7 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 
 	private static void printUsage() {
 		System.out.println("Run MfsBridge providing two arguments:");
-		System.out.println("  1. name of JCo RFC server (optional)");
+		System.out.println("  1. name of JCo RFC server (optional); can also be specified in the properties file");
 		System.out.println("  2. properties file with MfsBridge configuration");
 	}
 
@@ -213,13 +209,13 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 
 		if (function.getName().equals("RFC_EXECUTE_COMMAND"))
 			handleRfcExecuteCommand(serverCtx, function);
-		else if (function.getName().equals(sendingFM))
+		else if (function.getName().equals(configurator.getSendingFM()))
 			handleSendingFM(serverCtx, function);
-		else if (function.getName().equals(startingFM))
+		else if (function.getName().equals(configurator.getStartingFM()))
 			handleStartingFM(serverCtx, function);
-		else if (function.getName().equals(stoppingFM))
+		else if (function.getName().equals(configurator.getSendingFM()))
 			handleStoppingFM(serverCtx, function);
-		else if (function.getName().equals(statusFM))
+		else if (function.getName().equals(configurator.getStatusFM()))
 			handleStatusFM(serverCtx, function);
 		else
 			logger.warn(

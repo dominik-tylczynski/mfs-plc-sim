@@ -4,15 +4,10 @@ import java.awt.Color;
 
 public class TelegramStyle {
 	private String name;
-
 	private Color color;
-
 	private boolean italic = false;
-
 	private boolean bold = false;
-
 	private boolean underline = false;
-
 	private boolean strikeThrough = false;
 
 	public TelegramStyle(String propertyKey, String propertyValue) {
@@ -34,18 +29,23 @@ public class TelegramStyle {
 		}
 
 	}
+
 	public Color getColor() {
 		return color;
 	}
+
 	public String getName() {
 		return name;
 	}
+
 	public boolean isBold() {
 		return bold;
 	}
+
 	public boolean isItalic() {
 		return italic;
 	}
+
 	public boolean isStrikeThrough() {
 		return strikeThrough;
 	}

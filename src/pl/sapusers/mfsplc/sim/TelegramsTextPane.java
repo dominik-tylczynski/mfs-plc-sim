@@ -6,8 +6,7 @@ import java.awt.Font;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Properties;
-import java.util.Set;
+import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -28,42 +27,30 @@ import com.sap.conn.jco.JCo;
 import com.sap.conn.jco.JCoRecordMetaData;
 import com.sap.conn.jco.JCoStructure;
 
+import pl.sapusers.mfsplc.Configurator;
+
 @SuppressWarnings("serial")
 public class TelegramsTextPane extends JTextPane {
 	private Logger logger = LogManager.getLogger(TelegramsTextPane.class.getName());
 	private JCoRecordMetaData telegramMetadata;
 
-	public TelegramsTextPane(Properties config, JCoRecordMetaData telegramMetadata, JScrollPane scrollPane) {
+	public TelegramsTextPane(Configurator configurator, JCoRecordMetaData telegramMetadata, JScrollPane scrollPane) {
 		super();
 		this.telegramMetadata = telegramMetadata;
 
 		setEditable(false);
 		setFont(new Font("Monospaced", Font.PLAIN, 12));
 
-		Set<String> propertyKeys = config.stringPropertyNames();
-
-		for (String propertyKey : propertyKeys) {
-			if (propertyKey.contains("Style")) {
-				String styleName = propertyKey.substring(6);
-				String[] styleParts = config.getProperty(propertyKey).split(",");
-
-				Style style = this.addStyle(styleName, null);
-				StyleConstants.setForeground(style, new Color(Integer.parseInt(styleParts[0]),
-						Integer.parseInt(styleParts[1]), Integer.parseInt(styleParts[2])));
-
-				if (styleParts.length == 4) {
-					if (styleParts[3].contains("I"))
-						StyleConstants.setItalic(style, true);
-					if (styleParts[3].contains("B"))
-						StyleConstants.setBold(style, true);
-					if (styleParts[3].contains("U"))
-						StyleConstants.setUnderline(style, true);
-					if (styleParts[3].contains("S"))
-						StyleConstants.setStrikeThrough(style, true);
-				}
-			}
+		List<TelegramStyle> telegramStyles = configurator.getTelegramStyles();
+		for (TelegramStyle telegramStyle : telegramStyles) {
+			Style style = this.addStyle(telegramStyle.getName(), null);
+			StyleConstants.setForeground(style, telegramStyle.getColor());		
+			StyleConstants.setItalic(style, telegramStyle.isItalic());
+			StyleConstants.setBold(style, telegramStyle.isBold());
+			StyleConstants.setUnderline(style, telegramStyle.isUnderline());
+			StyleConstants.setStrikeThrough(style, telegramStyle.isStrikeThrough());
 		}
-
+		
 // add left column with line numbers
 		JTextArea lineNumbers = new JTextArea("1");
 		lineNumbers.setFont(new Font("Monospaced", Font.PLAIN, 12));
