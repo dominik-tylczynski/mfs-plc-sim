@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -32,6 +33,7 @@ import pl.sapusers.mfsplc.Configurator;
 @SuppressWarnings("serial")
 public class TelegramsTextPane extends JTextPane {
 	private Logger logger = LogManager.getLogger(TelegramsTextPane.class.getName());
+	private ArrayList<Telegram> telegrams;
 	private JCoRecordMetaData telegramMetadata;
 
 	public TelegramsTextPane(Configurator configurator, JCoRecordMetaData telegramMetadata, JScrollPane scrollPane) {
@@ -150,6 +152,11 @@ public class TelegramsTextPane extends JTextPane {
 		scrollPane.setColumnHeaderView(ruler);
 	}
 
+	public void clear() {
+		telegrams.clear();
+		setText(null);
+	}
+	
 	public void addTelegram(String message) {
 		JCoStructure telegram = JCo.createStructure(telegramMetadata);
 		telegram.setString(message);

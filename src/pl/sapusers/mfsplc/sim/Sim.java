@@ -9,7 +9,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -41,7 +40,6 @@ public class Sim extends JFrame {
 
 	private Configurator configurator;
 	private JCoRecordMetaData telegramMetadata; // TODO remove
-	private ArrayList<Telegram> telegrams;
 	private Thread processor;
 	private Thread monitor;
 
@@ -236,8 +234,7 @@ public class Sim extends JFrame {
 		TopLeftPanel.add(btnClear);
 		btnClear.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				textTelegrams.setText(null);
-				telegrams.clear();
+				textTelegrams.clear();
 			}
 		});
 		btnStartStop.addActionListener(new ActionListener() {
