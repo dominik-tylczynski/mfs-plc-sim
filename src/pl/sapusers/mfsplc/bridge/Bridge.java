@@ -291,6 +291,7 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 		JCoTable ct_data;
 
 		String telegramString = new String();
+		String telegramLength = new String();
 		String address = new String();
 		String port = new String();
 
@@ -346,7 +347,7 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 			case 3: // iv_command = SEND, telegram length
 				try {
 					//TODO - handle or ignore telegram length
-					telegramString = telegramString + " " + ct_data.getString();
+					telegramLength = ct_data.getString();
 				} catch (ConversionException e) {
 					logger.error(e);
 					throw (e);
@@ -356,7 +357,7 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 		}
 
 		logger.debug("RFC_EXCUTE_COMMAND: IV_COMMAND: " + iv_command + " address: " + address + " port: " + port
-				+ " telegram: " + telegramString);
+				+ " telegram: " + telegramString + " telegram length: " + telegramLength);
 
 		if (iv_command.equals("START")) {
 			Channel channel = new Channel(server.getRepositoryDestination(), address, port);
