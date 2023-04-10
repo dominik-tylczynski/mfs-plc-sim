@@ -8,10 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Properties;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -31,26 +28,16 @@ import javax.swing.border.TitledBorder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.sap.conn.jco.JCo;
-import com.sap.conn.jco.JCoDestinationManager;
-import com.sap.conn.jco.JCoException;
-import com.sap.conn.jco.JCoRecordMetaData;
-import com.sap.conn.jco.JCoStructure;
+import pl.sapusers.mfsplc.Configurator;
 
 @SuppressWarnings("serial")
 public class Sim extends JFrame {
 	private Logger logger = LogManager.getLogger(Sim.class.getName());
 
-// Configuration
-	private Properties configuration;
-	private String handshakeRequest;
-	private String handshakeConfirmation;
-	private boolean switchSenderReceiver;
-	private JCoRecordMetaData telegramMetadata;
-
+	private Configurator configurator;
 	private Thread processor;
 	private Thread monitor;
-	
+
 	private TcpServer server;
 	private TelegramsTextPane textTelegrams;
 	private JToggleButton tglbtnLife;
@@ -62,19 +49,19 @@ public class Sim extends JFrame {
 		@Override
 		public void run() {
 			while (server.isRunning()) {
-				
+
 				synchronized (server) {
 					try {
 						server.wait();
-						
+
 						if (server.isClientConnected()) {
 							textPort.setBackground(Color.GREEN);
 							btnSend.setEnabled(true);
 						} else {
 							textPort.setBackground(Color.YELLOW);
 							btnSend.setEnabled(false);
-						}						
-						
+						}
+
 					} catch (InterruptedException e) {
 						logger.debug(e);
 					}
@@ -92,28 +79,24 @@ public class Sim extends JFrame {
 				String message = null;
 				try {
 					message = server.incoming.take();
-					JCoStructure telegram = JCo.createStructure(telegramMetadata);
-					telegram.setString(message);
+					Telegram telegram = new Telegram(configurator, message, Telegram.FROM_SAP);
 
-					if (telegram.getString("TELETYPE").equals("LIFE") && tglbtnLife.isSelected()
-							|| !telegram.getString("TELETYPE").equals("LIFE"))
+					if (telegram.getField("TELETYPE").equals(configurator.getTelegramType("LIFE"))
+							&& tglbtnLife.isSelected()
+							|| !telegram.getField("TELETYPE").equals(configurator.getTelegramType("LIFE")))
 						textTelegrams.addTelegram(telegram);
 
 					// send acknowledge telegram if needed
-					if (telegram.getString("HANDSHAKE").equals(handshakeRequest) && tglAutoHandshake.isSelected()) {
-						JCoStructure response = (JCoStructure) telegram.clone();
-						response.getField("HANDSHAKE").setValue(handshakeConfirmation);
+					if (tglAutoHandshake.isSelected()) {
+						Telegram response = telegram.getHandshakeConfirmation();
+						if (response != null) {
+							server.outgoing.add(response.getString());
 
-						if (switchSenderReceiver) {
-							response.getField("SENDER").setValue(telegram.getString("RECEIVER"));
-							response.getField("RECEIVER").setValue(telegram.getString("SENDER"));
+							if (response.getField("TELETYPE").equals(configurator.getTelegramType("LIFE"))
+									&& tglbtnLife.isSelected()
+									|| !response.getField("TELETYPE").equals(configurator.getTelegramType("LIFE")))
+								textTelegrams.addTelegram(response);
 						}
-						server.outgoing.add(response.getString());
-
-						if (response.getString("TELETYPE").equals("LIFE") && tglbtnLife.isSelected()
-								|| !response.getString("TELETYPE").equals("LIFE"))
-							textTelegrams.addTelegram(response);
-
 					}
 				} catch (InterruptedException e) {
 				}
@@ -127,53 +110,24 @@ public class Sim extends JFrame {
 		System.out.println("  2. properties file with MfsSim configuration");
 	}
 
-	private void loadConfiguration(String destination, String configProperties) {
-		// Load configuration from properties file
-		configuration = new Properties();
-		logger.debug("Loading properites file: " + configProperties);
-		try (FileInputStream propertiesFile = new FileInputStream(configProperties)) {
-			configuration.load(propertiesFile);
-		} catch (FileNotFoundException e) {
-			logger.catching(e);
-		} catch (IOException e) {
-			logger.catching(e);
-		}
-
-		// Get handshake request and confirmation strings
-		handshakeRequest = configuration.getProperty("handshakeRequest");
-		if (handshakeRequest == null || handshakeRequest.equals(""))
-			logger.error("Handshake request not defined in the config file: " + configProperties);
-
-		handshakeConfirmation = configuration.getProperty("handshakeConfirmation");
-		if (handshakeConfirmation == null || handshakeConfirmation.equals(""))
-			logger.error("Handshake confirmation not defined in the config file: " + configProperties);
-
-		// Get sender / receiver switch setting
-		switchSenderReceiver = Boolean.parseBoolean(configuration.getProperty("switchSenderReceiver"));
-
-		// Get JCo metadata of telegram structure
-		try {
-			telegramMetadata = JCoDestinationManager.getDestination(destination).getRepository()
-					.getStructureDefinition(configuration.getProperty("telegramStructure"));
-		} catch (JCoException e) {
-			logger.throwing(e);
-		}
-	}
-
 	/**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
 
-		if (args.length != 2) {
-			printUsage();
-			System.exit(0);
-		}
-
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
+				Sim frame = null;
 				try {
-					Sim frame = new Sim(args[0], args[1]);
+					if (args.length == 1)
+						frame = new Sim(new Configurator(args[0], null, null));
+					else if (args.length == 2)
+						frame = new Sim(new Configurator(args[1], args[0], null));
+					else {
+						printUsage();
+						System.exit(0);
+					}
+
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -185,8 +139,8 @@ public class Sim extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public Sim(String destination, String configProperties) {
-		loadConfiguration(destination, configProperties);
+	public Sim(Configurator configurator) {
+		this.configurator = configurator;
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 823, 558);
@@ -212,9 +166,8 @@ public class Sim extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
-					JCoStructure telegram = JCo.createStructure(telegramMetadata);
-					telegram.setString(textTelegram.getText());
-					new TelegramDialog(telegram.getRecordFieldIterator(), false, "Outbound telegram");
+					Telegram telegram = new Telegram(configurator, textTelegram.getText(), Telegram.TO_SAP);
+					new TelegramDialog(telegram, false, "Outbound telegram");
 					textTelegram.setText(telegram.getString());
 				}
 			}
@@ -231,7 +184,7 @@ public class Sim extends JFrame {
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 		TelegramPanel.add(scrollPane, BorderLayout.CENTER);
 
-		textTelegrams = new TelegramsTextPane(configuration, telegramMetadata, scrollPane);
+		textTelegrams = new TelegramsTextPane(this.configurator, scrollPane);
 
 		JPanel TopPanel = new JPanel();
 		TopPanel.setBorder(new TitledBorder(null, "Controls", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -268,7 +221,7 @@ public class Sim extends JFrame {
 		TopLeftPanel.add(btnClear);
 		btnClear.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				textTelegrams.setText(null);
+				textTelegrams.clear();
 			}
 		});
 		btnStartStop.addActionListener(new ActionListener() {
@@ -292,7 +245,7 @@ public class Sim extends JFrame {
 						JOptionPane.showMessageDialog(null, e, "Server could not be started",
 								JOptionPane.ERROR_MESSAGE);
 						logger.catching(e);
-						
+
 						textPort.setEditable(true);
 						btnStartStop.setText("Start");
 						textPort.setBackground(Color.WHITE);
@@ -308,6 +261,7 @@ public class Sim extends JFrame {
 					textPort.setEditable(true);
 					btnStartStop.setText("Start");
 					textPort.setBackground(Color.WHITE);
+					btnSend.setEnabled(false);
 				}
 			}
 		});
@@ -322,8 +276,9 @@ public class Sim extends JFrame {
 		btnSend.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (!textTelegram.getText().equals("")) {
-					server.outgoing.add(textTelegram.getText());
-					textTelegrams.addTelegram(textTelegram.getText());
+					Telegram telegram = new Telegram(configurator, textTelegram.getText(), Telegram.TO_SAP);
+					server.outgoing.add(telegram.getString());
+					textTelegrams.addTelegram(telegram);
 					textTelegram.setText("");
 				}
 			}

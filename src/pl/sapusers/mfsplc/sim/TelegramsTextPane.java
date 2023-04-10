@@ -6,8 +6,8 @@ import java.awt.Font;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Properties;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -24,44 +24,29 @@ import javax.swing.text.StyledDocument;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.sap.conn.jco.JCo;
-import com.sap.conn.jco.JCoRecordMetaData;
-import com.sap.conn.jco.JCoStructure;
+import pl.sapusers.mfsplc.Configurator;
 
 @SuppressWarnings("serial")
 public class TelegramsTextPane extends JTextPane {
 	private Logger logger = LogManager.getLogger(TelegramsTextPane.class.getName());
-	private JCoRecordMetaData telegramMetadata;
+	private ArrayList<Telegram> telegrams;
 
-	public TelegramsTextPane(Properties config, JCoRecordMetaData telegramMetadata, JScrollPane scrollPane) {
+	public TelegramsTextPane(Configurator configurator, JScrollPane scrollPane) {
 		super();
-		this.telegramMetadata = telegramMetadata;
 
+		telegrams = new ArrayList<Telegram>();
+		
 		setEditable(false);
 		setFont(new Font("Monospaced", Font.PLAIN, 12));
 
-		Set<String> propertyKeys = config.stringPropertyNames();
-
-		for (String propertyKey : propertyKeys) {
-			if (propertyKey.contains("Style")) {
-				String styleName = propertyKey.substring(6);
-				String[] styleParts = config.getProperty(propertyKey).split(",");
-
-				Style style = this.addStyle(styleName, null);
-				StyleConstants.setForeground(style, new Color(Integer.parseInt(styleParts[0]),
-						Integer.parseInt(styleParts[1]), Integer.parseInt(styleParts[2])));
-
-				if (styleParts.length == 4) {
-					if (styleParts[3].contains("I"))
-						StyleConstants.setItalic(style, true);
-					if (styleParts[3].contains("B"))
-						StyleConstants.setBold(style, true);
-					if (styleParts[3].contains("U"))
-						StyleConstants.setUnderline(style, true);
-					if (styleParts[3].contains("S"))
-						StyleConstants.setStrikeThrough(style, true);
-				}
-			}
+		List<TelegramStyle> telegramStyles = configurator.getTelegramStyles();
+		for (TelegramStyle telegramStyle : telegramStyles) {
+			Style style = this.addStyle(telegramStyle.getName(), null);
+			StyleConstants.setForeground(style, telegramStyle.getColor());
+			StyleConstants.setItalic(style, telegramStyle.isItalic());
+			StyleConstants.setBold(style, telegramStyle.isBold());
+			StyleConstants.setUnderline(style, telegramStyle.isUnderline());
+			StyleConstants.setStrikeThrough(style, telegramStyle.isStrikeThrough());
 		}
 
 // add left column with line numbers
@@ -81,19 +66,11 @@ public class TelegramsTextPane extends JTextPane {
 						int line = lineNumbers.getDocument().getDefaultRootElement().getElementIndex(caretPosition);
 						if (caretPosition > 1 && lineNumbers.getDocument().getText(caretPosition - 1, 1).equals("\n"))
 							line--;
-						Element element = getDocument().getDefaultRootElement().getElement(line);
 
-						int start = element.getStartOffset();
-						int end = element.getEndOffset();
+						Telegram telegram = telegrams.get(line);
+						new TelegramDialog(telegram, true, "Line: " + (line + 1) + "; " + telegram.getDirection() + "; " + telegram.getTimeStamp());
 
-						String text = getDocument().getText(start, end - start);
-						text = text.replace("\n", "");
-						if (!text.equals("")) {
-							JCoStructure telegram = JCo.createStructure(telegramMetadata);
-							telegram.setString(text);
-							new TelegramDialog(telegram.getRecordFieldIterator(), true, "Line: " + (line + 1));
-						}
-					} catch (BadLocationException exc) {
+					} catch (IndexOutOfBoundsException | BadLocationException exc) {
 						logger.catching(exc);
 					}
 				}
@@ -101,7 +78,7 @@ public class TelegramsTextPane extends JTextPane {
 
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				scrollPane.getRowHeader().setViewPosition(new Point(0,scrollPane.getViewport().getViewPosition().y));			
+				scrollPane.getRowHeader().setViewPosition(new Point(0, scrollPane.getViewport().getViewPosition().y));
 			}
 		});
 
@@ -151,36 +128,58 @@ public class TelegramsTextPane extends JTextPane {
 				ruler.setText(ruler.getText() + i + "....:....");
 			}
 		}
-		
+
 		ruler.addMouseListener(new MouseAdapter() {
-			
+
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				scrollPane.getColumnHeader().setViewPosition(new Point(scrollPane.getViewport().getViewPosition().x,0));			
+				scrollPane.getColumnHeader()
+						.setViewPosition(new Point(scrollPane.getViewport().getViewPosition().x, 0));
 			}
 		});
-		
+
 		scrollPane.setColumnHeaderView(ruler);
 	}
 
-	public void addTelegram(String message) {
-		JCoStructure telegram = JCo.createStructure(telegramMetadata);
-		telegram.setString(message);
-		addTelegram(telegram);
+	public void clear() {
+		telegrams.clear();
+		setText(null);
 	}
 
-	public void addTelegram(JCoStructure telegram) {
-
+	public void addTelegram(Telegram telegram) {
 		Style style;
-		style = this.getStyle(telegram.getString("TELETYPE") + "-" + telegram.getString("HANDSHAKE"));
+		style = this.getStyle(telegram.getField("TELETYPE") + "-" + telegram.getField("HANDSHAKE"));
 		if (style == null)
-			style = this.getStyle("*-" + telegram.getString("HANDSHAKE"));
+			style = this.getStyle("*-" + telegram.getField("HANDSHAKE"));
 
 		StyledDocument doc = this.getStyledDocument();
 		try {
 			doc.insertString(doc.getLength(), telegram.getString() + "\n", style);
+			telegrams.add(telegram);
+
 		} catch (BadLocationException e) {
 			logger.catching(e);
 		}
 	}
+
+//	public void addTelegram(String message) {
+//		JCoStructure telegram = JCo.createStructure(telegramMetadata);
+//		telegram.setString(message);
+//		addTelegram(telegram);
+//	}
+//
+//	public void addTelegram(JCoStructure telegram) {
+//
+//		Style style;
+//		style = this.getStyle(telegram.getString("TELETYPE") + "-" + telegram.getString("HANDSHAKE"));
+//		if (style == null)
+//			style = this.getStyle("*-" + telegram.getString("HANDSHAKE"));
+//
+//		StyledDocument doc = this.getStyledDocument();
+//		try {
+//			doc.insertString(doc.getLength(), telegram.getString() + "\n", style);
+//		} catch (BadLocationException e) {
+//			logger.catching(e);
+//		}
+//	}
 }

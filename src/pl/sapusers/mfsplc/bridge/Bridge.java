@@ -1,16 +1,11 @@
 package pl.sapusers.mfsplc.bridge;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Properties;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,26 +33,23 @@ import com.sap.conn.jco.server.JCoServerFunctionHandler;
 import com.sap.conn.jco.server.JCoServerState;
 import com.sap.conn.jco.server.JCoServerStateChangedListener;
 
+import pl.sapusers.mfsplc.Configurator;
+
 public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListener, JCoServerErrorListener,
 		JCoServerStateChangedListener {
 	private Logger logger = LogManager.getLogger(Bridge.class.getName());
 
 	private JCoServer server;
-
-// configuration settings	
-	private String sendingFM;
-	private String startingFM;
-	private String stoppingFM;
-	private String statusFM;
+	private Configurator configurator;
 
 // communication channels 
 	Map<String, Channel> channels = new HashMap<>();
 
-	public Bridge(String serverName, String configProperties) throws JCoException {
+	public Bridge(Configurator configurator) throws JCoException {
+		this.configurator = configurator;
 
-		this.server = JCoServerFactory.getServer(serverName);
+		this.server = JCoServerFactory.getServer(this.configurator.getJCoServer());
 
-		loadConfiguration(configProperties);
 		buildCustomRepository();
 
 		DefaultServerHandlerFactory.FunctionHandlerFactory factory = new DefaultServerHandlerFactory.FunctionHandlerFactory();
@@ -80,26 +72,6 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 		logger.info("Stopping RFC server");
 		server.stop();
 		logger.info("RFC server stopped");
-	}
-
-	private void loadConfiguration(String configProperties) {
-		// Load configuration from properties file
-		Properties config = new Properties();
-		logger.debug("Loading properites file: " + configProperties);
-		try (FileInputStream propertiesFile = new FileInputStream(configProperties)) {
-			config.load(propertiesFile);
-		} catch (FileNotFoundException e) {
-			logger.catching(e);
-		} catch (IOException e) {
-			logger.catching(e);
-		}
-
-		// Get RFC function modules for A "proprietary" type channel
-		// TODO implement support of A type channel
-		sendingFM = config.getProperty("sendingFM");
-		startingFM = config.getProperty("startingFM");
-		stoppingFM = config.getProperty("stoppingFM");
-		statusFM = config.getProperty("statusFM");
 	}
 
 	private void buildCustomRepository() {
@@ -135,18 +107,11 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 			logger.catching(e);
 		}
 
-//		try {
-//			customRepository.addFunctionTemplateToCache(customRepository.getFunctionTemplate("RFC_EXECUTE_COMMAND_1"));
-//		} catch (JCoException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
-
 		server.setRepository(customRepository);
 
 // to test - save repository in json file	
 //		try {
-//			FileWriter writer = new FileWriter(new File("test3.json").getAbsolutePath());
+//			FileWriter writer = new FileWriter(new File("test1.json").getAbsolutePath());
 //			customRepository.save(writer);
 //			writer.close();
 //		} catch (IOException e) {
@@ -187,7 +152,7 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 
 	private static void printUsage() {
 		System.out.println("Run MfsBridge providing two arguments:");
-		System.out.println("  1. name of JCo RFC server");
+		System.out.println("  1. name of JCo RFC server (optional); can also be specified in the properties file");
 		System.out.println("  2. properties file with MfsBridge configuration");
 	}
 
@@ -199,13 +164,17 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 	}
 
 	public static void main(String[] args) throws JCoException {
+		Bridge bridge = null;
 
-		if (args.length != 2) {
+		if (args.length == 1)
+			bridge = new Bridge(new Configurator(args[0], null, null));
+		else if (args.length == 2)
+			bridge = new Bridge(new Configurator(args[1], null, args[0]));
+		else {
 			printUsage();
 			System.exit(0);
 		}
 
-		Bridge bridge = new Bridge(args[0], args[1]);
 		bridge.startRFCServer();
 
 		BufferedReader keyboardReader = new BufferedReader(new InputStreamReader(System.in));
@@ -242,13 +211,13 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 
 		if (function.getName().equals("RFC_EXECUTE_COMMAND"))
 			handleRfcExecuteCommand(serverCtx, function);
-		else if (function.getName().equals(sendingFM))
+		else if (function.getName().equals(configurator.getSendingFM()))
 			handleSendingFM(serverCtx, function);
-		else if (function.getName().equals(startingFM))
+		else if (function.getName().equals(configurator.getStartingFM()))
 			handleStartingFM(serverCtx, function);
-		else if (function.getName().equals(stoppingFM))
+		else if (function.getName().equals(configurator.getSendingFM()))
 			handleStoppingFM(serverCtx, function);
-		else if (function.getName().equals(statusFM))
+		else if (function.getName().equals(configurator.getStatusFM()))
 			handleStatusFM(serverCtx, function);
 		else
 			logger.warn(
