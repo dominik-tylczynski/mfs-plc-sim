@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.HashMap;
 
 import javax.swing.JButton;
@@ -17,14 +19,9 @@ import javax.swing.Spring;
 import javax.swing.SpringLayout;
 import javax.swing.border.EmptyBorder;
 
-import com.sap.conn.jco.JCo;
-import com.sap.conn.jco.JCoDestinationManager;
 import com.sap.conn.jco.JCoField;
 import com.sap.conn.jco.JCoRecordField;
 import com.sap.conn.jco.JCoRecordFieldIterator;
-
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 @SuppressWarnings("serial")
 public class TelegramDialog extends JDialog {
@@ -34,8 +31,8 @@ public class TelegramDialog extends JDialog {
 	 */
 	public static void main(String[] args) {
 		try {
-			new TelegramDialog(JCo.createStructure(JCoDestinationManager.getDestination("S4D").getRepository()
-					.getStructureDefinition("ZMFS_TELETOTAL")).getRecordFieldIterator(), false, "Test title");
+//			new TelegramDialog(JCo.createStructure(JCoDestinationManager.getDestination("S4D").getRepository()
+//					.getStructureDefinition("ZMFS_TELETOTAL")).getRecordFieldIterator(), false, "Test title");
 
 //			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 //			dialog.setVisible(true);
@@ -50,7 +47,7 @@ public class TelegramDialog extends JDialog {
 
 	private HashMap<String, JTextField> fieldsMap = new HashMap<>();
 
-	public TelegramDialog(JCoRecordFieldIterator fieldsIterator, boolean displayOnly, String title) {
+	public TelegramDialog(Telegram telegram, boolean displayOnly, String title) {
 		setTitle(title);
 		setModal(!displayOnly);
 		SpringLayout springLayout = new SpringLayout();
@@ -71,6 +68,8 @@ public class TelegramDialog extends JDialog {
 		Integer PADDING = 6;
 		Component topAnchor = null;
 		int offset = 1;
+		
+		JCoRecordFieldIterator fieldsIterator = telegram.getRecordFieldIterator();
 		
 		while (fieldsIterator.hasNextField()) {
 

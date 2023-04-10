@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import com.sap.conn.jco.JCo;
 import com.sap.conn.jco.JCoDestinationManager;
 import com.sap.conn.jco.JCoException;
+import com.sap.conn.jco.JCoRecordFieldIterator;
 import com.sap.conn.jco.JCoStructure;
 
 import pl.sapusers.mfsplc.Configurator;
@@ -103,5 +104,9 @@ public class Telegram {
 
 	public void setField(String field, String value) {
 		telegramContent.getField(field).setValue(value);
+	}
+	
+	public JCoRecordFieldIterator getRecordFieldIterator() {
+		return telegramContent.getRecordFieldIterator();
 	}
 }

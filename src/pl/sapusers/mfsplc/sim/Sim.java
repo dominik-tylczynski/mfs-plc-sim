@@ -28,10 +28,6 @@ import javax.swing.border.TitledBorder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.sap.conn.jco.JCo;
-import com.sap.conn.jco.JCoRecordMetaData;
-import com.sap.conn.jco.JCoStructure;
-
 import pl.sapusers.mfsplc.Configurator;
 
 @SuppressWarnings("serial")
@@ -39,7 +35,6 @@ public class Sim extends JFrame {
 	private Logger logger = LogManager.getLogger(Sim.class.getName());
 
 	private Configurator configurator;
-	private JCoRecordMetaData telegramMetadata; // TODO remove
 	private Thread processor;
 	private Thread monitor;
 
@@ -171,9 +166,8 @@ public class Sim extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
-					JCoStructure telegram = JCo.createStructure(telegramMetadata);
-					telegram.setString(textTelegram.getText());
-					new TelegramDialog(telegram.getRecordFieldIterator(), false, "Outbound telegram");
+					Telegram telegram = new Telegram(configurator, textTelegram.getText(), Telegram.TO_SAP);
+					new TelegramDialog(telegram, false, "Outbound telegram");
 					textTelegram.setText(telegram.getString());
 				}
 			}

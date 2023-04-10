@@ -68,13 +68,16 @@ public class TelegramsTextPane extends JTextPane {
 						int line = lineNumbers.getDocument().getDefaultRootElement().getElementIndex(caretPosition);
 						if (caretPosition > 1 && lineNumbers.getDocument().getText(caretPosition - 1, 1).equals("\n"))
 							line--;
-						Element element = getDocument().getDefaultRootElement().getElement(line);
-
-						int start = element.getStartOffset();
-						int end = element.getEndOffset();
-
-						String text = getDocument().getText(start, end - start);
-						text = text.replace("\n", "");
+//						Element element = getDocument().getDefaultRootElement().getElement(line);
+//
+//						int start = element.getStartOffset();
+//						int end = element.getEndOffset();
+//
+//						String text = getDocument().getText(start, end - start);
+//						text = text.replace("\n", "");
+						
+						
+						
 						if (!text.equals("")) {
 							JCoStructure telegram = JCo.createStructure(telegramMetadata);
 							telegram.setString(text);
