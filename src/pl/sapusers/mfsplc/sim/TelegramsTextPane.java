@@ -34,6 +34,8 @@ public class TelegramsTextPane extends JTextPane {
 	public TelegramsTextPane(Configurator configurator, JScrollPane scrollPane) {
 		super();
 
+		telegrams = new ArrayList<Telegram>();
+		
 		setEditable(false);
 		setFont(new Font("Monospaced", Font.PLAIN, 12));
 

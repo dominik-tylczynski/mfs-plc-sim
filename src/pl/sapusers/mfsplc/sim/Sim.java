@@ -261,6 +261,7 @@ public class Sim extends JFrame {
 					textPort.setEditable(true);
 					btnStartStop.setText("Start");
 					textPort.setBackground(Color.WHITE);
+					btnSend.setEnabled(false);
 				}
 			}
 		});

@@ -107,7 +107,7 @@ public class Configurator {
 	}
 
 	public String getTelegramStructure(String telegramType) {
-		return configProperties.getProperty("telegramStructure." + telegramType);	
+		return getProperty("telegramStructure." + telegramType);	
 	}
 	
 	public String getTelegramStructureHeader() {
@@ -129,7 +129,7 @@ public class Configurator {
 	}
 
 	public String getTelegramType(String type) {
-		return getProperty("telegramType" + type);
+		return getProperty("telegramType." + type);
 	}
 	
 	private String getProperty(String property) {

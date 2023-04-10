@@ -41,7 +41,8 @@ public class Telegram {
 			telegramContent.setString(telegramString);
 
 			telegramContent = JCo.createStructure(JCoDestinationManager.getDestination(configurator.getJCoDestination())
-					.getRepository().getStructureDefinition(telegramContent.getString("TELETYPE")));
+					.getRepository()
+					.getStructureDefinition(configurator.getTelegramStructure(telegramContent.getString("TELETYPE"))));
 
 			telegramContent.setString(telegramString);
 
@@ -68,20 +69,16 @@ public class Telegram {
 
 	public Telegram getHandshakeConfirmation() {
 		if (this.getField("HANDSHAKE").equals(configurator.getHandshakeRequest())) {
-			try {
-				Telegram response = (Telegram) this.clone();
-				response.setField("HANDSHAKE", configurator.getHandshakeConfirmation());
 
-				if (configurator.getSwitchSenderReceiver()) {
-					response.setField("SENDER", this.getField("RECEIVER"));
-					response.setField("RECEIVER", this.getField("SENDER"));
-				}
-				return response;
-			} catch (CloneNotSupportedException e) {
-				logger.error(e);
-				return null;
+			Telegram response = new Telegram(configurator, this.getString(), Telegram.TO_SAP);
+			response.setField("HANDSHAKE", configurator.getHandshakeConfirmation());
+
+			if (configurator.getSwitchSenderReceiver()) {
+				response.setField("SENDER", this.getField("RECEIVER"));
+				response.setField("RECEIVER", this.getField("SENDER"));
 			}
-
+			
+			return response;
 		} else
 			return null;
 	}
