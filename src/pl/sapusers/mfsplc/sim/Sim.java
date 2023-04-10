@@ -84,31 +84,24 @@ public class Sim extends JFrame {
 				String message = null;
 				try {
 					message = server.incoming.take();
-					JCoStructure telegram = JCo.createStructure(telegramMetadata);
-					telegram.setString(message);
+					Telegram telegram = new Telegram(configurator, message, Telegram.FROM_SAP);
 
-					if (telegram.getString("TELETYPE").equals(configurator.getTelegramType("LIFE"))
+					if (telegram.getField("TELETYPE").equals(configurator.getTelegramType("LIFE"))
 							&& tglbtnLife.isSelected()
-							|| !telegram.getString("TELETYPE").equals(configurator.getTelegramType("LIFE")))
+							|| !telegram.getField("TELETYPE").equals(configurator.getTelegramType("LIFE")))
 						textTelegrams.addTelegram(telegram);
 
 					// send acknowledge telegram if needed
-					if (telegram.getString("HANDSHAKE").equals(configurator.getHandshakeRequest())
-							&& tglAutoHandshake.isSelected()) {
-						JCoStructure response = (JCoStructure) telegram.clone();
-						response.getField("HANDSHAKE").setValue(configurator.getHandshakeConfirmation());
+					if (tglAutoHandshake.isSelected()) {
+						Telegram response = telegram.getHandshakeConfirmation();
+						if (response != null) {
+							server.outgoing.add(response.getString());
 
-						if (configurator.getSwitchSenderReceiver()) {
-							response.getField("SENDER").setValue(telegram.getString("RECEIVER"));
-							response.getField("RECEIVER").setValue(telegram.getString("SENDER"));
+							if (response.getField("TELETYPE").equals(configurator.getTelegramType("LIFE"))
+									&& tglbtnLife.isSelected()
+									|| !response.getField("TELETYPE").equals(configurator.getTelegramType("LIFE")))
+								textTelegrams.addTelegram(response);
 						}
-						server.outgoing.add(response.getString());
-
-						if (response.getString("TELETYPE").equals(configurator.getTelegramType("LIFE"))
-								&& tglbtnLife.isSelected()
-								|| !response.getString("TELETYPE").equals(configurator.getTelegramType("LIFE")))
-							textTelegrams.addTelegram(response);
-
 					}
 				} catch (InterruptedException e) {
 				}
@@ -197,7 +190,7 @@ public class Sim extends JFrame {
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 		TelegramPanel.add(scrollPane, BorderLayout.CENTER);
 
-		textTelegrams = new TelegramsTextPane(this.configurator, telegramMetadata, scrollPane);
+		textTelegrams = new TelegramsTextPane(this.configurator, scrollPane);
 
 		JPanel TopPanel = new JPanel();
 		TopPanel.setBorder(new TitledBorder(null, "Controls", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -288,8 +281,9 @@ public class Sim extends JFrame {
 		btnSend.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (!textTelegram.getText().equals("")) {
-					server.outgoing.add(textTelegram.getText());
-					textTelegrams.addTelegram(textTelegram.getText());
+					Telegram telegram = new Telegram(configurator, textTelegram.getText(), Telegram.TO_SAP);
+					server.outgoing.add(telegram.getString());
+					textTelegrams.addTelegram(telegram);
 					textTelegram.setText("");
 				}
 			}

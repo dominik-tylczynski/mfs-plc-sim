@@ -107,13 +107,7 @@ public class Configurator {
 	}
 
 	public String getTelegramStructure(String telegramType) {
-		String value = configProperties.getProperty("telegramStructure." + telegramType);	
-		if (value == null || value.equals("")) {
-			logger.debug("Telegram type " + telegramType + " structure not defined. Getting default structure from telegramStructure.*");
-			return getProperty("telegramStructure.*");
-		} else {
-			return value;
-		}	
+		return configProperties.getProperty("telegramStructure." + telegramType);	
 	}
 	
 	public String getTelegramStructureHeader() {

@@ -34,11 +34,9 @@ import pl.sapusers.mfsplc.Configurator;
 public class TelegramsTextPane extends JTextPane {
 	private Logger logger = LogManager.getLogger(TelegramsTextPane.class.getName());
 	private ArrayList<Telegram> telegrams;
-	private JCoRecordMetaData telegramMetadata;
 
-	public TelegramsTextPane(Configurator configurator, JCoRecordMetaData telegramMetadata, JScrollPane scrollPane) {
+	public TelegramsTextPane(Configurator configurator, JScrollPane scrollPane) {
 		super();
-		this.telegramMetadata = telegramMetadata;
 
 		setEditable(false);
 		setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -157,24 +155,40 @@ public class TelegramsTextPane extends JTextPane {
 		setText(null);
 	}
 	
-	public void addTelegram(String message) {
-		JCoStructure telegram = JCo.createStructure(telegramMetadata);
-		telegram.setString(message);
-		addTelegram(telegram);
-	}
-
-	public void addTelegram(JCoStructure telegram) {
-
+	public void addTelegram(Telegram telegram) {
 		Style style;
-		style = this.getStyle(telegram.getString("TELETYPE") + "-" + telegram.getString("HANDSHAKE"));
+		style = this.getStyle(telegram.getField("TELETYPE") + "-" + telegram.getField("HANDSHAKE"));
 		if (style == null)
-			style = this.getStyle("*-" + telegram.getString("HANDSHAKE"));
+			style = this.getStyle("*-" + telegram.getField("HANDSHAKE"));
 
 		StyledDocument doc = this.getStyledDocument();
 		try {
 			doc.insertString(doc.getLength(), telegram.getString() + "\n", style);
+			telegrams.add(telegram);
+			
 		} catch (BadLocationException e) {
 			logger.catching(e);
-		}
+		}		
 	}
+	
+//	public void addTelegram(String message) {
+//		JCoStructure telegram = JCo.createStructure(telegramMetadata);
+//		telegram.setString(message);
+//		addTelegram(telegram);
+//	}
+//
+//	public void addTelegram(JCoStructure telegram) {
+//
+//		Style style;
+//		style = this.getStyle(telegram.getString("TELETYPE") + "-" + telegram.getString("HANDSHAKE"));
+//		if (style == null)
+//			style = this.getStyle("*-" + telegram.getString("HANDSHAKE"));
+//
+//		StyledDocument doc = this.getStyledDocument();
+//		try {
+//			doc.insertString(doc.getLength(), telegram.getString() + "\n", style);
+//		} catch (BadLocationException e) {
+//			logger.catching(e);
+//		}
+//	}
 }

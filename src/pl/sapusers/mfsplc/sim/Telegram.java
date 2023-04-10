@@ -17,36 +17,66 @@ public class Telegram {
 	public static final String TO_SAP = "outbound";
 	public static final String FROM_SAP = "inbound";
 	private Logger logger = LogManager.getLogger(Telegram.class.getName());
+	private Configurator configurator;
 
 	private JCoStructure telegramContent;
+	private String telegramString;
 	private LocalDateTime timeStamp;
 	private String direction;
 
 	public Telegram(Configurator configurator, String telegramString, String direction) {
+		this.configurator = configurator;
+		timeStamp = LocalDateTime.now();
+		this.direction = direction;
+		this.telegramString = telegramString;
+
 		try {
 			JCoStructure header = JCo
 					.createStructure(JCoDestinationManager.getDestination(configurator.getJCoDestination())
 							.getRepository().getStructureDefinition(configurator.getTelegramStructureHeader()));
 
 			header.setString(telegramString);
-			
-			telegramContent = JCo
-					.createStructure(JCoDestinationManager.getDestination(configurator.getJCoDestination())
-							.getRepository().getStructureDefinition(header.getString("TELETYPE")));
+
+			telegramContent = JCo.createStructure(JCoDestinationManager.getDestination(configurator.getJCoDestination())
+					.getRepository().getStructureDefinition(header.getString("TELETYPE")));
 
 			telegramContent.setString(telegramString);
-			timeStamp = LocalDateTime.now();
-			this.direction = direction;
 
 		} catch (IllegalArgumentException | JCoException e) {
+			telegramContent = null;
 			logger.error(e);
 		}
 	}
 
-	public Telegram(JCoStructure telegramContent, String direction) {
+	public Telegram(Configurator configurator, JCoStructure telegramContent, String direction) {
+		this.configurator = configurator;
 		this.telegramContent = telegramContent;
+		this.telegramString = telegramContent.getString();
 		timeStamp = LocalDateTime.now();
 		this.direction = direction;
+	}
+
+	public Telegram getHandshakeConfirmation() {
+		if (telegramContent == null)
+			return null;
+
+		if (this.getField("HANDSHAKE").equals(configurator.getHandshakeRequest())) {
+			try {
+				Telegram response = (Telegram) this.clone();
+				response.setField("HANDSHAKE", configurator.getHandshakeConfirmation());
+
+				if (configurator.getSwitchSenderReceiver()) {
+					response.setField("SENDER", this.getField("RECEIVER"));
+					response.setField("RECEIVER", this.getField("SENDER"));
+				}
+				return response;
+			} catch (CloneNotSupportedException e) {
+				logger.error(e);
+				return null;
+			}
+
+		} else
+			return null;
 	}
 
 	public String getDirection() {
@@ -54,11 +84,17 @@ public class Telegram {
 	}
 
 	public String getField(String field) {
-		return telegramContent.getString(field);
+		if (telegramContent == null)
+			return null;
+		else
+			return telegramContent.getString(field);
 	}
 
 	public String getString() {
-		return telegramContent.getString();
+		if (telegramContent == null)
+			return telegramString;
+		else
+			return telegramContent.getString();
 	}
 
 	public String getTimeStamp() {
