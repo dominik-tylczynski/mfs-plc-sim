@@ -109,6 +109,7 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 
 		server.setRepository(customRepository);
 
+		
 // to test - save repository in json file	
 //		try {
 //			FileWriter writer = new FileWriter(new File("test1.json").getAbsolutePath());
