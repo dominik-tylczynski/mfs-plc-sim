@@ -6,24 +6,27 @@ import java.time.format.DateTimeFormatter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.sap.conn.jco.ConversionException;
 import com.sap.conn.jco.JCo;
 import com.sap.conn.jco.JCoDestinationManager;
 import com.sap.conn.jco.JCoException;
 import com.sap.conn.jco.JCoRecordFieldIterator;
+import com.sap.conn.jco.JCoRuntimeException;
 import com.sap.conn.jco.JCoStructure;
 
 import pl.sapusers.mfsplc.Configurator;
 
 public class Telegram {
-	public static final String TO_SAP = "outbound";
 	public static final String FROM_SAP = "inbound";
-	private Logger logger = LogManager.getLogger(Telegram.class.getName());
+	public static final String TO_SAP = "outbound";
 	private Configurator configurator;
+	private String direction;
 
+	private Logger logger = LogManager.getLogger(Telegram.class.getName());
 	private JCoStructure telegramContent;
+	@SuppressWarnings("unused")
 	private String telegramString;
 	private LocalDateTime timeStamp;
-	private String direction;
 
 	public Telegram(Configurator configurator, String telegramString, String direction) {
 		this.configurator = configurator;
@@ -32,35 +35,38 @@ public class Telegram {
 		this.telegramString = telegramString;
 
 		try {
-			JCoStructure header = JCo
-					.createStructure(JCoDestinationManager.getDestination(configurator.getJCoDestination())
-							.getRepository().getStructureDefinition(configurator.getTelegramStructureHeader()));
+			telegramContent = JCo.createStructure(JCoDestinationManager.getDestination(configurator.getJCoDestination())
+					.getRepository().getStructureDefinition(configurator.getTelegramStructureHeader()));
 
-			header.setString(telegramString);
+			telegramContent.setString(telegramString);
 
 			telegramContent = JCo.createStructure(JCoDestinationManager.getDestination(configurator.getJCoDestination())
-					.getRepository().getStructureDefinition(header.getString("TELETYPE")));
+					.getRepository().getStructureDefinition(telegramContent.getString("TELETYPE")));
 
 			telegramContent.setString(telegramString);
 
 		} catch (IllegalArgumentException | JCoException e) {
-			telegramContent = null;
 			logger.error(e);
 		}
 	}
 
-	public Telegram(Configurator configurator, JCoStructure telegramContent, String direction) {
-		this.configurator = configurator;
-		this.telegramContent = telegramContent;
-		this.telegramString = telegramContent.getString();
-		timeStamp = LocalDateTime.now();
-		this.direction = direction;
+	public String getDirection() {
+		return direction;
+	}
+
+	public String getField(String field) {
+		try {
+			return telegramContent.getString(field);
+		} catch (ConversionException e) {
+			logger.error(e);
+			return null;
+		} catch (JCoRuntimeException e) {
+			logger.error(e);
+			return null;
+		}
 	}
 
 	public Telegram getHandshakeConfirmation() {
-		if (telegramContent == null)
-			return null;
-
 		if (this.getField("HANDSHAKE").equals(configurator.getHandshakeRequest())) {
 			try {
 				Telegram response = (Telegram) this.clone();
@@ -80,22 +86,12 @@ public class Telegram {
 			return null;
 	}
 
-	public String getDirection() {
-		return direction;
-	}
-
-	public String getField(String field) {
-		if (telegramContent == null)
-			return null;
-		else
-			return telegramContent.getString(field);
+	public JCoRecordFieldIterator getRecordFieldIterator() {
+		return telegramContent.getRecordFieldIterator();
 	}
 
 	public String getString() {
-		if (telegramContent == null)
-			return telegramString;
-		else
-			return telegramContent.getString();
+		return telegramContent.getString();
 	}
 
 	public String getTimeStamp() {
@@ -104,9 +100,5 @@ public class Telegram {
 
 	public void setField(String field, String value) {
 		telegramContent.getField(field).setValue(value);
-	}
-	
-	public JCoRecordFieldIterator getRecordFieldIterator() {
-		return telegramContent.getRecordFieldIterator();
 	}
 }

@@ -24,10 +24,6 @@ import javax.swing.text.StyledDocument;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.sap.conn.jco.JCo;
-import com.sap.conn.jco.JCoRecordMetaData;
-import com.sap.conn.jco.JCoStructure;
-
 import pl.sapusers.mfsplc.Configurator;
 
 @SuppressWarnings("serial")
@@ -44,13 +40,13 @@ public class TelegramsTextPane extends JTextPane {
 		List<TelegramStyle> telegramStyles = configurator.getTelegramStyles();
 		for (TelegramStyle telegramStyle : telegramStyles) {
 			Style style = this.addStyle(telegramStyle.getName(), null);
-			StyleConstants.setForeground(style, telegramStyle.getColor());		
+			StyleConstants.setForeground(style, telegramStyle.getColor());
 			StyleConstants.setItalic(style, telegramStyle.isItalic());
 			StyleConstants.setBold(style, telegramStyle.isBold());
 			StyleConstants.setUnderline(style, telegramStyle.isUnderline());
 			StyleConstants.setStrikeThrough(style, telegramStyle.isStrikeThrough());
 		}
-		
+
 // add left column with line numbers
 		JTextArea lineNumbers = new JTextArea("1");
 		lineNumbers.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -68,22 +64,11 @@ public class TelegramsTextPane extends JTextPane {
 						int line = lineNumbers.getDocument().getDefaultRootElement().getElementIndex(caretPosition);
 						if (caretPosition > 1 && lineNumbers.getDocument().getText(caretPosition - 1, 1).equals("\n"))
 							line--;
-//						Element element = getDocument().getDefaultRootElement().getElement(line);
-//
-//						int start = element.getStartOffset();
-//						int end = element.getEndOffset();
-//
-//						String text = getDocument().getText(start, end - start);
-//						text = text.replace("\n", "");
-						
-						
-						
-						if (!text.equals("")) {
-							JCoStructure telegram = JCo.createStructure(telegramMetadata);
-							telegram.setString(text);
-							new TelegramDialog(telegram.getRecordFieldIterator(), true, "Line: " + (line + 1));
-						}
-					} catch (BadLocationException exc) {
+
+						Telegram telegram = telegrams.get(line);
+						new TelegramDialog(telegram, true, "Line: " + (line + 1) + "; " + telegram.getDirection() + "; " + telegram.getTimeStamp());
+
+					} catch (IndexOutOfBoundsException | BadLocationException exc) {
 						logger.catching(exc);
 					}
 				}
@@ -91,7 +76,7 @@ public class TelegramsTextPane extends JTextPane {
 
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				scrollPane.getRowHeader().setViewPosition(new Point(0,scrollPane.getViewport().getViewPosition().y));			
+				scrollPane.getRowHeader().setViewPosition(new Point(0, scrollPane.getViewport().getViewPosition().y));
 			}
 		});
 
@@ -141,15 +126,16 @@ public class TelegramsTextPane extends JTextPane {
 				ruler.setText(ruler.getText() + i + "....:....");
 			}
 		}
-		
+
 		ruler.addMouseListener(new MouseAdapter() {
-			
+
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				scrollPane.getColumnHeader().setViewPosition(new Point(scrollPane.getViewport().getViewPosition().x,0));			
+				scrollPane.getColumnHeader()
+						.setViewPosition(new Point(scrollPane.getViewport().getViewPosition().x, 0));
 			}
 		});
-		
+
 		scrollPane.setColumnHeaderView(ruler);
 	}
 
@@ -157,7 +143,7 @@ public class TelegramsTextPane extends JTextPane {
 		telegrams.clear();
 		setText(null);
 	}
-	
+
 	public void addTelegram(Telegram telegram) {
 		Style style;
 		style = this.getStyle(telegram.getField("TELETYPE") + "-" + telegram.getField("HANDSHAKE"));
@@ -168,12 +154,12 @@ public class TelegramsTextPane extends JTextPane {
 		try {
 			doc.insertString(doc.getLength(), telegram.getString() + "\n", style);
 			telegrams.add(telegram);
-			
+
 		} catch (BadLocationException e) {
 			logger.catching(e);
-		}		
+		}
 	}
-	
+
 //	public void addTelegram(String message) {
 //		JCoStructure telegram = JCo.createStructure(telegramMetadata);
 //		telegram.setString(message);
