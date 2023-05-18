@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.sap.conn.jco.AbapClassException;
 import com.sap.conn.jco.AbapException;
+import com.sap.conn.jco.ConversionException;
 import com.sap.conn.jco.JCo;
 import com.sap.conn.jco.JCoCustomRepository;
 import com.sap.conn.jco.JCoDestinationManager;
@@ -89,8 +90,9 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 //		*"      CT_DATA TYPE  /SCWM/TT_MFS_TELE
 //		*"----------------------------------------------------------------------		
 			JCoListMetaData imports = JCo.createListMetaData("INPUT");
-			imports.add("IV_COMMAND", JCoListMetaData.TYPE_CHAR, customRepository.getRecordMetaData("CHAR20"),
-					JCoListMetaData.IMPORT_PARAMETER);
+//			imports.add("IV_COMMAND", JCoListMetaData.TYPE_CHAR, customRepository.getRecordMetaData("CHAR20"),
+//					JCoListMetaData.IMPORT_PARAMETER);
+			imports.add("IV_COMMAND", JCoListMetaData.TYPE_CHAR, 20, 40, JCoListMetaData.IMPORT_PARAMETER);
 			imports.lock();
 
 			JCoListMetaData tables = JCo.createListMetaData("TABLES");
@@ -107,6 +109,7 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 
 		server.setRepository(customRepository);
 
+		
 // to test - save repository in json file	
 //		try {
 //			FileWriter writer = new FileWriter(new File("test1.json").getAbsolutePath());
@@ -255,33 +258,76 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 //		*"----------------------------------------------------------------------			
 
 		String iv_command;
+		JCoTable ct_data;
+
 		String telegramString = new String();
+		String telegramLength = new String();
 		String address = new String();
 		String port = new String();
 
-		iv_command = function.getImportParameterList().getString("IV_COMMAND");
+		try {
+			iv_command = function.getImportParameterList().getString("IV_COMMAND");
+			logger.trace("IV_COMMAND = " + iv_command);
+		} catch (ConversionException e) {
+			logger.error(e);
+			throw (e);
+		} catch (JCoRuntimeException e) {
+			logger.error(e);
+			throw (e);
+		}	
 
-		JCoTable ct_data = function.getTableParameterList().getTable("CT_DATA");
+		try {
+			ct_data = function.getTableParameterList().getTable("CT_DATA");
+			logger.trace("CT_DATA = \n" + ct_data);
+		} catch (ConversionException e) {
+			logger.error(e);
+			throw (e);
+		} catch (JCoRuntimeException e) {
+			logger.error(e);
+			throw (e);
+		}
+
 		for (int i = 0; i < ct_data.getNumRows(); i++) {
 			ct_data.setRow(i);
 			switch (i) {
 			case 0: // IP address
-				address = ct_data.getString();
+				try {
+					address = ct_data.getString();
+				} catch (ConversionException e) {
+					logger.error(e);
+					throw (e);
+				}
 				break;
 			case 1: // port number
-				port = ct_data.getString();
+				try {
+					port = ct_data.getString();
+				} catch (ConversionException e) {
+					logger.error(e);
+					throw (e);
+				}
 				break;
 			case 2: // iv_command = SEND, telegram content, iv_command = START, telegram end char
-				telegramString = ct_data.getString();
+				try {
+					telegramString = ct_data.getString();
+				} catch (ConversionException e) {
+					logger.error(e);
+					throw (e);
+				}
 				break;
 			case 3: // iv_command = SEND, telegram length
-				telegramString = telegramString + " " + ct_data.getString();
+				try {
+					//TODO - handle or ignore telegram length
+					telegramLength = ct_data.getString();
+				} catch (ConversionException e) {
+					logger.error(e);
+					throw (e);
+				}
 				break;
 			}
 		}
 
 		logger.debug("RFC_EXCUTE_COMMAND: IV_COMMAND: " + iv_command + " address: " + address + " port: " + port
-				+ " telegram: " + telegramString);
+				+ " telegram: " + telegramString + " telegram length: " + telegramLength);
 
 		if (iv_command.equals("START")) {
 			Channel channel = new Channel(server.getRepositoryDestination(), address, port);
