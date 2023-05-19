@@ -148,9 +148,9 @@ public class TelegramsTextPane extends JTextPane {
 
 	public void addTelegram(Telegram telegram) {
 		Style style;
-		style = this.getStyle(telegram.getField("TELETYPE") + "-" + telegram.getField("HANDSHAKE"));
+		style = this.getStyle(telegram.getType() + "-" + telegram.getHandshake());
 		if (style == null)
-			style = this.getStyle("*-" + telegram.getField("HANDSHAKE"));
+			style = this.getStyle("*-" + telegram.getHandshake());
 
 		StyledDocument doc = this.getStyledDocument();
 		try {
@@ -161,25 +161,4 @@ public class TelegramsTextPane extends JTextPane {
 			logger.catching(e);
 		}
 	}
-
-//	public void addTelegram(String message) {
-//		JCoStructure telegram = JCo.createStructure(telegramMetadata);
-//		telegram.setString(message);
-//		addTelegram(telegram);
-//	}
-//
-//	public void addTelegram(JCoStructure telegram) {
-//
-//		Style style;
-//		style = this.getStyle(telegram.getString("TELETYPE") + "-" + telegram.getString("HANDSHAKE"));
-//		if (style == null)
-//			style = this.getStyle("*-" + telegram.getString("HANDSHAKE"));
-//
-//		StyledDocument doc = this.getStyledDocument();
-//		try {
-//			doc.insertString(doc.getLength(), telegram.getString() + "\n", style);
-//		} catch (BadLocationException e) {
-//			logger.catching(e);
-//		}
-//	}
 }

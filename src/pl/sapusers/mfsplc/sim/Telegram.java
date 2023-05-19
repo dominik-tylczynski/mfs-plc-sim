@@ -141,6 +141,14 @@ public class Telegram {
 		telegramContent.getField(field).setValue(value);
 	}
 
+	public String getType() {
+		return getField("TELETYPE").replaceFirst("["+configurator.getFillCharacter()+"]++$", "");
+	}
+
+	public String getHandshake() {
+		return getField("HANDSHAKE").replaceFirst("["+configurator.getFillCharacter()+"]++$", "");
+	}
+	
 	private JCoStructure createHandshakeStructure() {
 		JCoRecordMetaData field;
 

@@ -31,9 +31,10 @@ public class Configurator {
 		}
 
 		System.out.println(configurator.getHandshakeRequest());
-		System.out.println(configurator.getHandshakeRequest());
 		System.out.println(configurator.getHandshakeConfirmation());
 		System.out.println(configurator.getTelegramStructure("WT"));
+		System.out.println(configurator.getTelegramStructure("WTCO"));
+		
 	}
 
 	private Properties configProperties;
@@ -110,7 +111,7 @@ public class Configurator {
 	}
 
 	public String getTelegramStructure(String telegramType) {
-		return getProperty("telegramStructure." + telegramType.replace(' ', getFillCharacter()).trim());
+		return getProperty("telegramStructure." + telegramType.replaceFirst("["+getFillCharacter()+"]++$", ""));
 	}
 
 	public String getTelegramStructureHeader() {
@@ -132,7 +133,7 @@ public class Configurator {
 	}
 
 	public String getTelegramType(String type) {
-		return getProperty("telegramType." + type);
+		return getProperty("telegramType." + type.replaceFirst("["+getFillCharacter()+"]++$", ""));
 	}
 
 	public String getHandshakeMode() {
