@@ -29,12 +29,13 @@ public class Configurator {
 			configurator = new Configurator(args[0], args[1], args[2]);
 			break;
 		}
-		
+
 		System.out.println(configurator.getHandshakeRequest());
 		System.out.println(configurator.getHandshakeRequest());
-		System.out.println(configurator.getHandshakeRequest());
-		System.out.println(configurator.getSendingFM());
+		System.out.println(configurator.getHandshakeConfirmation());
+		System.out.println(configurator.getTelegramStructure("WT"));
 	}
+
 	private Properties configProperties;
 	private String configPropertiesFileName;
 
@@ -67,25 +68,27 @@ public class Configurator {
 		for (String propertyKey : new TreeSet<String>(configProperties.stringPropertyNames())) {
 			logger.debug(propertyKey + " = " + configProperties.getProperty(propertyKey));
 		}
-		
+
 	}
 
 	public String getHandshakeConfirmation() {
-		return getProperty("handshakeConfirmation");
+		String handshakeConfirmation = getProperty("handshakeConfirmation");
+		return String.format("%-2s", handshakeConfirmation).replace(' ', getFillCharacter()).trim();
 	}
 
 	public String getHandshakeRequest() {
-		return getProperty("handshakeRequest");
+		String handshakeRequest = getProperty("handshakeRequest");
+		return String.format("%-2s", handshakeRequest).replace(' ', getFillCharacter()).trim();
 	}
 
 	public String getJCoDestination() {
 		return getProperty("jcoDestination");
-	}	
-	
+	}
+
 	public String getJCoServer() {
 		return getProperty("jcoServer");
 	}
-	
+
 	public String getSendingFM() {
 		return getProperty("sendingFM");
 	}
@@ -107,13 +110,13 @@ public class Configurator {
 	}
 
 	public String getTelegramStructure(String telegramType) {
-		return getProperty("telegramStructure." + telegramType);	
+		return getProperty("telegramStructure." + telegramType.replace(' ', getFillCharacter()).trim());
 	}
-	
+
 	public String getTelegramStructureHeader() {
 		return getProperty("telegramStructureHeader");
 	}
-	
+
 	public List<TelegramStyle> getTelegramStyles() {
 		List<TelegramStyle> styles = new ArrayList<TelegramStyle>();
 
@@ -131,15 +134,24 @@ public class Configurator {
 	public String getTelegramType(String type) {
 		return getProperty("telegramType." + type);
 	}
-	
+
 	public String getHandshakeMode() {
 		return getProperty("handshakeMode");
 	}
-	
+
+	public char getFillCharacter() {
+		String fillCharacter = getProperty("fillCharacter");
+
+		if (fillCharacter.equals(""))
+			return ' ';
+		else
+			return fillCharacter.charAt(0);
+	}
+
 	private String getProperty(String property) {
 		String value = configProperties.getProperty(property);
 
-		if (value == null || value.equals(""))
+		if (value == null)
 			logger.error("Property " + property + " not defined in the config file: " + configPropertiesFileName);
 
 		return value;
