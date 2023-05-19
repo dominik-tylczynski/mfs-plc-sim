@@ -132,6 +132,10 @@ public class Configurator {
 		return getProperty("telegramType." + type);
 	}
 	
+	public String getHandshakeMode() {
+		return getProperty("handshakeMode");
+	}
+	
 	private String getProperty(String property) {
 		String value = configProperties.getProperty(property);
 

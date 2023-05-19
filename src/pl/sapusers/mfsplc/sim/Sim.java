@@ -44,6 +44,7 @@ public class Sim extends JFrame {
 	private JTextField textPort;
 	private JToggleButton tglAutoHandshake;
 	private JButton btnSend;
+	private JTextField textField;
 
 	class TcpIpMonitor implements Runnable {
 		@Override
@@ -185,14 +186,29 @@ public class Sim extends JFrame {
 		TelegramPanel.add(scrollPane, BorderLayout.CENTER);
 
 		textTelegrams = new TelegramsTextPane(this.configurator, scrollPane);
-
+		
 		JPanel TopPanel = new JPanel();
-		TopPanel.setBorder(new TitledBorder(null, "Controls", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		contentPanel.add(TopPanel, BorderLayout.NORTH);
 		TopPanel.setLayout(new BorderLayout(0, 0));
+		
+		JPanel DescriptionPanel = new JPanel();
+		DescriptionPanel.setBorder(new TitledBorder(null, "PLC Description", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		TopPanel.add(DescriptionPanel, BorderLayout.NORTH);
+		DescriptionPanel.setLayout(new BorderLayout(0, 0));
+		
+		textField = new JTextField();
+		textField.setFont(new Font("Monospaced", Font.PLAIN, 12));
+		textField.setHorizontalAlignment(SwingConstants.LEFT);
+		DescriptionPanel.add(textField, BorderLayout.NORTH);
+		textField.setColumns(100);
+
+		JPanel ControlsPanel = new JPanel();
+		TopPanel.add(ControlsPanel, BorderLayout.SOUTH);
+		ControlsPanel.setBorder(new TitledBorder(null, "Controls", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		ControlsPanel.setLayout(new BorderLayout(0, 0));
 
 		JPanel TopLeftPanel = new JPanel();
-		TopPanel.add(TopLeftPanel, BorderLayout.WEST);
+		ControlsPanel.add(TopLeftPanel, BorderLayout.WEST);
 
 		JLabel lblPort = new JLabel("Port");
 		TopLeftPanel.add(lblPort);
@@ -210,79 +226,87 @@ public class Sim extends JFrame {
 		tglAutoHandshake = new JToggleButton("Handshake");
 		TopLeftPanel.add(tglAutoHandshake);
 		tglAutoHandshake.setToolTipText("Send handshake telegrams automatically");
-		tglAutoHandshake.setSelected(true);
+		
 		tglAutoHandshake.setHorizontalAlignment(SwingConstants.RIGHT);
+		
+				tglbtnLife = new JToggleButton("Life");
+				TopLeftPanel.add(tglbtnLife);
+				tglbtnLife.setToolTipText("Show LIFE telegrams");
+				
+						JButton btnClear = new JButton("Clear");
+						TopLeftPanel.add(btnClear);
+						btnClear.addActionListener(new ActionListener() {
+							public void actionPerformed(ActionEvent e) {
+								textTelegrams.clear();
+							}
+						});
+						btnStartStop.addActionListener(new ActionListener() {
+							public void actionPerformed(ActionEvent ac) {
 
-		tglbtnLife = new JToggleButton("Life");
-		TopLeftPanel.add(tglbtnLife);
-		tglbtnLife.setToolTipText("Show LIFE telegrams");
+								if (textPort.isEditable()) {
 
-		JButton btnClear = new JButton("Clear");
-		TopLeftPanel.add(btnClear);
-		btnClear.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				textTelegrams.clear();
-			}
-		});
-		btnStartStop.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ac) {
+									try {
+										server = new TcpServer(Integer.parseUnsignedInt(textPort.getText()));
+										processor = new Thread(new TcpIpProcessor());
+										processor.setName("Telegram processor " + processor.getName());
+										processor.start();
+										monitor = new Thread(new TcpIpMonitor());
+										monitor.setName("Server monitor " + monitor.getName());
+										monitor.start();
+										textPort.setEditable(false);
+										textPort.setBackground(Color.YELLOW);
+										textPort.setText(Integer.toString(Integer.parseUnsignedInt(textPort.getText())));
+										btnStartStop.setText("Stop");
+									} catch (NumberFormatException | IOException e) {
+										JOptionPane.showMessageDialog(null, e, "Server could not be started",
+												JOptionPane.ERROR_MESSAGE);
+										logger.catching(e);
 
-				if (textPort.isEditable()) {
+										textPort.setEditable(true);
+										btnStartStop.setText("Start");
+										textPort.setBackground(Color.WHITE);
+										server.stopServer();
+										processor.interrupt();
+										monitor.interrupt();
+									}
 
-					try {
-						server = new TcpServer(Integer.parseUnsignedInt(textPort.getText()));
-						processor = new Thread(new TcpIpProcessor());
-						processor.setName("Telegram processor " + processor.getName());
-						processor.start();
-						monitor = new Thread(new TcpIpMonitor());
-						monitor.setName("Server monitor " + monitor.getName());
-						monitor.start();
-						textPort.setEditable(false);
-						textPort.setBackground(Color.YELLOW);
-						textPort.setText(Integer.toString(Integer.parseUnsignedInt(textPort.getText())));
-						btnStartStop.setText("Stop");
-					} catch (NumberFormatException | IOException e) {
-						JOptionPane.showMessageDialog(null, e, "Server could not be started",
-								JOptionPane.ERROR_MESSAGE);
-						logger.catching(e);
-
-						textPort.setEditable(true);
-						btnStartStop.setText("Start");
-						textPort.setBackground(Color.WHITE);
-						server.stopServer();
-						processor.interrupt();
-						monitor.interrupt();
-					}
-
-				} else {
-					server.stopServer();
-					processor.interrupt();
-					monitor.interrupt();
-					textPort.setEditable(true);
-					btnStartStop.setText("Start");
-					textPort.setBackground(Color.WHITE);
-					btnSend.setEnabled(false);
-				}
-			}
-		});
-
-		JPanel TopRightPanel = new JPanel();
-		TopPanel.add(TopRightPanel, BorderLayout.EAST);
-
-		btnSend = new JButton("Send");
-		TopRightPanel.add(btnSend);
-		btnSend.setEnabled(false);
-		btnSend.setHorizontalAlignment(SwingConstants.LEFT);
-		btnSend.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				if (!textTelegram.getText().equals("")) {
-					Telegram telegram = new Telegram(configurator, textTelegram.getText(), Telegram.TO_SAP);
-					server.outgoing.add(telegram.getString());
-					textTelegrams.addTelegram(telegram);
-					textTelegram.setText("");
-				}
-			}
-		});
+								} else {
+									server.stopServer();
+									processor.interrupt();
+									monitor.interrupt();
+									textPort.setEditable(true);
+									btnStartStop.setText("Start");
+									textPort.setBackground(Color.WHITE);
+									btnSend.setEnabled(false);
+								}
+							}
+						});
+						
+								JPanel TopRightPanel = new JPanel();
+								ControlsPanel.add(TopRightPanel, BorderLayout.EAST);
+								
+										btnSend = new JButton("Send");
+										TopRightPanel.add(btnSend);
+										btnSend.setEnabled(false);
+										btnSend.setHorizontalAlignment(SwingConstants.LEFT);
+										btnSend.addActionListener(new ActionListener() {
+											public void actionPerformed(ActionEvent e) {
+												if (!textTelegram.getText().equals("")) {
+													Telegram telegram = new Telegram(configurator, textTelegram.getText(), Telegram.TO_SAP);
+													server.outgoing.add(telegram.getString());
+													textTelegrams.addTelegram(telegram);
+													textTelegram.setText("");
+												}
+											}
+										});
+		
+		if (configurator.getHandshakeMode().equals("C")) {
+			tglAutoHandshake.setSelected(false);
+			tglAutoHandshake.setEnabled(false);
+		} else {
+			tglAutoHandshake.setSelected(true);
+			tglAutoHandshake.setEnabled(true);
+		}
 
 		JPanel BottomPannel = new JPanel();
 		contentPanel.add(BottomPannel, BorderLayout.SOUTH);
