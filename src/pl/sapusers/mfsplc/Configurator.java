@@ -30,11 +30,14 @@ public class Configurator {
 			break;
 		}
 
-		System.out.println(configurator.getHandshakeRequest());
-		System.out.println(configurator.getHandshakeConfirmation());
-		System.out.println(configurator.getTelegramStructure("WT"));
-		System.out.println(configurator.getTelegramStructure("WTCO"));
+//		System.out.println(configurator.getHandshakeRequest());
+//		System.out.println(configurator.getHandshakeConfirmation());
+//		System.out.println(configurator.getTelegramStructure("WT"));
+//		System.out.println(configurator.getTelegramStructure("WTCO"));
 		
+		System.out.println(configurator.addFillCharacter(configurator.getHandshakeConfirmation(), "2"));
+		System.out.println(configurator.addFillCharacter(configurator.getHandshakeConfirmation(), "2").length());
+
 	}
 
 	private Properties configProperties;
@@ -73,13 +76,11 @@ public class Configurator {
 	}
 
 	public String getHandshakeConfirmation() {
-		String handshakeConfirmation = getProperty("handshakeConfirmation");
-		return String.format("%-2s", handshakeConfirmation).replace(' ', getFillCharacter()).trim();
+		return removeFillCharacter(getProperty("handshakeConfirmation"));
 	}
 
 	public String getHandshakeRequest() {
-		String handshakeRequest = getProperty("handshakeRequest");
-		return String.format("%-2s", handshakeRequest).replace(' ', getFillCharacter()).trim();
+		return removeFillCharacter(getProperty("handshakeRequest"));
 	}
 
 	public String getJCoDestination() {
@@ -111,7 +112,18 @@ public class Configurator {
 	}
 
 	public String getTelegramStructure(String telegramType) {
-		return getProperty("telegramStructure." + telegramType.replaceFirst("["+getFillCharacter()+"]++$", ""));
+		String telegramStructure;
+
+		// standard way - get telegram structure for telegram type without trailing fill
+		// characters
+		telegramStructure = getProperty("telegramStructure." + removeFillCharacter(telegramType));
+
+		// fallback, backwards compatibility - get telegram structure for telegram type
+		// with trailing fill characters
+		if (telegramStructure == null)
+			telegramStructure = getProperty("telegramStructure." + addFillCharacter(removeFillCharacter(telegramType), "4"));
+		
+		return telegramStructure;
 	}
 
 	public String getTelegramStructureHeader() {
@@ -125,7 +137,7 @@ public class Configurator {
 
 		for (String propertyKey : propertyKeys) {
 			if (propertyKey.contains("style")) {
-				styles.add(new TelegramStyle(propertyKey, configProperties.getProperty(propertyKey)));
+				styles.add(new TelegramStyle(removeFillCharacter(propertyKey), configProperties.getProperty(propertyKey)));
 			}
 		}
 
@@ -133,7 +145,7 @@ public class Configurator {
 	}
 
 	public String getTelegramType(String type) {
-		return getProperty("telegramType." + type.replaceFirst("["+getFillCharacter()+"]++$", ""));
+		return getProperty("telegramType." + type.replaceFirst("[" + getFillCharacter() + "]++$", ""));
 	}
 
 	public String getHandshakeMode() {
@@ -143,7 +155,7 @@ public class Configurator {
 	public char getFillCharacter() {
 		String fillCharacter = getProperty("fillCharacter");
 
-		if (fillCharacter.equals(""))
+		if (fillCharacter == null || fillCharacter.equals(""))
 			return ' ';
 		else
 			return fillCharacter.charAt(0);
@@ -156,6 +168,20 @@ public class Configurator {
 			logger.error("Property " + property + " not defined in the config file: " + configPropertiesFileName);
 
 		return value;
+	}
+
+	public String addFillCharacter(String property, String length) {
+		if (property == null)
+			return property;
+		else
+			return String.format("%-" + length + "s", property).replace(' ', getFillCharacter()).trim();
+	}
+
+	public String removeFillCharacter(String property) {
+		if (property == null)
+			return property;
+		else
+			return property.replaceFirst("[" + getFillCharacter() + "]++$", "");
 	}
 
 }

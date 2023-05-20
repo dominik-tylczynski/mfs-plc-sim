@@ -321,7 +321,7 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 						break;
 					case "START":
 						endChar = ct_data.getString();
-						break;						
+						break;
 					}
 				} catch (ConversionException e) {
 					logger.error(e);
@@ -343,15 +343,15 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 					logger.error(e);
 					throw (e);
 				}
-				break;				
-			case 5: // iv_command = START, start char 
+				break;
+			case 5: // iv_command = START, start char
 				try {
 					startChar = ct_data.getString();
 				} catch (ConversionException e) {
 					logger.error(e);
 					throw (e);
 				}
-				break;				
+				break;
 			case 6: // iv_command = START, start char unicode
 				try {
 					startCharUnicode = ct_data.getString();
@@ -359,30 +359,38 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 					logger.error(e);
 					throw (e);
 				}
-				break;		
+				break;
 			}
 		}
 
 		logger.debug("RFC_EXCUTE_COMMAND: IV_COMMAND: " + iv_command + "\naddress: " + address + "\nport: " + port
-				+ "\ntelegram: " + telegramString + "\ntelegram length: " + telegramLength
-				+ "\nstart char: " + startChar + "\nstart char unicode: " + startCharUnicode
-				+ "\nend char: " + endChar + "\nend char unicode: " + endCharUnicode);
+				+ "\ntelegram: " + telegramString + "\ntelegram length: " + telegramLength + "\nstart char: "
+				+ startChar + "\nstart char unicode: " + startCharUnicode + "\nend char: " + endChar
+				+ "\nend char unicode: " + endCharUnicode);
 
 		if (iv_command.equals("START")) {
-			Channel channel = new Channel(server.getRepositoryDestination(), address, port);
-			try {
-				logger.debug("*** Starting channel: " + address + ":" + port);
-				logger.debug("Creating socket: " + address + ":" + port);
-				channel.createSocket();
-				logger.debug("Socket created: " + address + ":" + port);
-				channels.put(channel.getAddress(), channel);
-				logger.debug("Starting new thread for channel: " + address + ":" + port);
-				channel.start();
-				logger.debug("New thread started for channel: " + address + ":" + port);
-				logger.debug("*** Channel started: " + address + ":" + port);
-			} catch (IOException e) {
-				logger.catching(e);
-				throw new AbapException(e.getMessage() + " " + address + ":" + port);
+			// check if channel already started
+			Channel channel = channels.get(address + ":" + port);
+
+			if (channel == null) {
+				channel = new Channel(server.getRepositoryDestination(), address, port);
+				try {
+					logger.debug("*** Starting channel: " + address + ":" + port);
+					logger.debug("Creating socket: " + address + ":" + port);
+					channel.createSocket();
+					logger.debug("Socket created: " + address + ":" + port);
+					channels.put(channel.getAddress(), channel);
+					logger.debug("Starting new thread for channel: " + address + ":" + port);
+					channel.start();
+					logger.debug("New thread started for channel: " + address + ":" + port);
+					logger.debug("*** Channel started: " + address + ":" + port);
+				} catch (IOException e) {
+					logger.catching(e);
+					throw new AbapException("SYSTEM_FAILURE", e.getMessage() + " " + address + ":" + port);
+				}
+			} else {
+				logger.warn("Channel " + address + ":" + port + " already started");
+				throw new AbapException("SYSTEM_FAILURE", "Channel " + address + ":" + port + " already started");
 			}
 		}
 
@@ -407,9 +415,9 @@ public class Bridge implements JCoServerFunctionHandler, JCoServerExceptionListe
 				channel.sendTelegramToTCP(telegramString);
 			}
 		}
-		
+
 		if (iv_command.equals("GET_AGENT_STATE")) {
-			//TODO
+			// TODO
 		}
 
 	}

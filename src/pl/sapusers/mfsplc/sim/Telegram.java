@@ -73,15 +73,15 @@ public class Telegram {
 		}
 	}
 
-	public Telegram getHandshakeConfirmation() {
+	public Telegram buildHandshakeResponse() {
 		Telegram response = null;
 
-		if (this.getField("HANDSHAKE").equals(configurator.getHandshakeRequest())) {
+		if (this.getHandshake().equals(configurator.getHandshakeRequest())) {
 
 			switch (configurator.getHandshakeMode()) {
 			case "A": // complete telegram
 				response = new Telegram(configurator, this.getString(), Telegram.TO_SAP);
-				response.setField("HANDSHAKE", configurator.getHandshakeConfirmation());
+				response.setField("HANDSHAKE", configurator.addFillCharacter(configurator.getHandshakeConfirmation(), "2"));
 				break;
 
 			case "B": // Sender, Recipient, Telegram Type, Sequence Number
@@ -107,7 +107,7 @@ public class Telegram {
 					return null;
 				}
 				response.setString(this.getString());
-				response.setField("HANDSHAKE", configurator.getHandshakeConfirmation());
+				response.setField("HANDSHAKE", configurator.addFillCharacter(configurator.getHandshakeConfirmation(), "2"));
 				break;
 			}
 
@@ -142,11 +142,11 @@ public class Telegram {
 	}
 
 	public String getType() {
-		return getField("TELETYPE").replaceFirst("["+configurator.getFillCharacter()+"]++$", "");
+		return configurator.removeFillCharacter(getField("TELETYPE"));
 	}
 
 	public String getHandshake() {
-		return getField("HANDSHAKE").replaceFirst("["+configurator.getFillCharacter()+"]++$", "");
+		return configurator.removeFillCharacter(getField("HANDSHAKE"));
 	}
 	
 	private JCoStructure createHandshakeStructure() {

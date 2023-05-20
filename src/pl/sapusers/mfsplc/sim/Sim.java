@@ -82,20 +82,20 @@ public class Sim extends JFrame {
 					message = server.incoming.take();
 					Telegram telegram = new Telegram(configurator, message, Telegram.FROM_SAP);
 
-					if (telegram.getField("TELETYPE").equals(configurator.getTelegramType("LIFE"))
+					if (telegram.getType().equals(configurator.getTelegramType("LIFE"))
 							&& tglbtnLife.isSelected()
-							|| !telegram.getField("TELETYPE").equals(configurator.getTelegramType("LIFE")))
+							|| !telegram.getType().equals(configurator.getTelegramType("LIFE")))
 						textTelegrams.addTelegram(telegram);
 
 					// send acknowledge telegram if needed
 					if (tglAutoHandshake.isSelected()) {
-						Telegram response = telegram.getHandshakeConfirmation();
+						Telegram response = telegram.buildHandshakeResponse();
 						if (response != null) {
 							server.outgoing.add(response.getString());
 
-							if (response.getField("TELETYPE").equals(configurator.getTelegramType("LIFE"))
+							if (response.getType().equals(configurator.getTelegramType("LIFE"))
 									&& tglbtnLife.isSelected()
-									|| !response.getField("TELETYPE").equals(configurator.getTelegramType("LIFE")))
+									|| !response.getType().equals(configurator.getTelegramType("LIFE")))
 								textTelegrams.addTelegram(response);
 						}
 					}
