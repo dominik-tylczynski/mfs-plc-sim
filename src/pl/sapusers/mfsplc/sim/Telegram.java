@@ -76,7 +76,7 @@ public class Telegram {
 	public Telegram buildHandshakeResponse() {
 		Telegram response = null;
 
-		if (configurator.removeFillCharacter(this.getHandshake()).equals(configurator.getHandshakeRequest())) {
+		if (this.getHandshake().equals(configurator.getHandshakeRequest())) {
 
 			switch (configurator.getHandshakeMode()) {
 			case "A": // complete telegram
