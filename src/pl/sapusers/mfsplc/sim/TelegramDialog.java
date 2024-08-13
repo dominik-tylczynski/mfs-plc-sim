@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
@@ -25,21 +27,6 @@ import com.sap.conn.jco.JCoRecordFieldIterator;
 
 @SuppressWarnings("serial")
 public class TelegramDialog extends JDialog {
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		try {
-//			new TelegramDialog(JCo.createStructure(JCoDestinationManager.getDestination("S4D").getRepository()
-//					.getStructureDefinition("ZMFS_TELETOTAL")).getRecordFieldIterator(), false, "Test title");
-
-//			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-//			dialog.setVisible(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 
 	/**
 	 * Create the dialog.
@@ -68,9 +55,9 @@ public class TelegramDialog extends JDialog {
 		Integer PADDING = 6;
 		Component topAnchor = null;
 		int offset = 1;
-		
+
 		JCoRecordFieldIterator fieldsIterator = telegram.getRecordFieldIterator();
-		
+
 		while (fieldsIterator.hasNextField()) {
 
 			JCoRecordField field = fieldsIterator.nextRecordField();
@@ -88,7 +75,7 @@ public class TelegramDialog extends JDialog {
 
 			springLayout.putConstraint(SpringLayout.WEST, label, PADDING, SpringLayout.WEST, p);
 
-			JTextField textField = new JTextField(field.getLength()+1);
+			JTextField textField = new JTextField(field.getLength() + 1);
 			textField.setName(field.getName());
 			textField.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 
@@ -156,39 +143,60 @@ public class TelegramDialog extends JDialog {
 		springLayout.getConstraints(p).setConstraint(SpringLayout.HEIGHT, sizeY);
 		springLayout.getConstraints(p).setConstraint(SpringLayout.WIDTH, sizeX);
 
-		{
-			JPanel buttonPane = new JPanel();
-			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-			getContentPane().add(buttonPane, BorderLayout.SOUTH);
-			{
-				JButton okButton = new JButton("OK");
-				okButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						fieldsIterator.reset();
-						while (fieldsIterator.hasNextField()) {
-							JCoField field = fieldsIterator.nextField();
-							JTextField textField = fieldsMap.get(field.getName());
-							field.setValue(textField.getText());
-						}
-						dispose();
-					}
-				});
-				okButton.setActionCommand("OK");
-				buttonPane.add(okButton);
-				if (displayOnly)
-					okButton.setEnabled(false);
+		JPanel buttonPane = new JPanel();
+		getContentPane().add(buttonPane, BorderLayout.SOUTH);
+
+		buttonPane.setLayout(new BorderLayout(0, 0));
+
+		JButton copyButton = new JButton("Copy");
+		buttonPane.add(copyButton, BorderLayout.WEST);
+		copyButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String textForClipboard = new String();
+				
+				fieldsIterator.reset();
+				while (fieldsIterator.hasNextField()) {
+					JCoField field = fieldsIterator.nextField();
+					JTextField textField = fieldsMap.get(field.getName());
+					textForClipboard = textForClipboard.concat(textField.getText());
+				}				
+				
+				
+				Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(textForClipboard),
+						null);
 			}
-			{
-				JButton cancelButton = new JButton("Cancel");
-				cancelButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						dispose();
-					}
-				});
-				cancelButton.setActionCommand("Cancel");
-				buttonPane.add(cancelButton);
+		});
+
+		JPanel okCancelPane = new JPanel();
+		FlowLayout flowLayout = (FlowLayout) okCancelPane.getLayout();
+		flowLayout.setVgap(0);
+		flowLayout.setHgap(0);
+		flowLayout.setAlignment(FlowLayout.RIGHT);
+		buttonPane.add(okCancelPane, BorderLayout.EAST);
+		JButton okButton = new JButton("OK");
+		okCancelPane.add(okButton);
+		okButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				fieldsIterator.reset();
+				while (fieldsIterator.hasNextField()) {
+					JCoField field = fieldsIterator.nextField();
+					JTextField textField = fieldsMap.get(field.getName());
+					field.setValue(textField.getText());
+				}
+				dispose();
 			}
-		}
+		});
+		okButton.setActionCommand("OK");
+		JButton cancelButton = new JButton("Cancel");
+		okCancelPane.add(cancelButton);
+		cancelButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
+		cancelButton.setActionCommand("Cancel");
+		if (displayOnly)
+			okButton.setEnabled(false);
 
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setVisible(true);
