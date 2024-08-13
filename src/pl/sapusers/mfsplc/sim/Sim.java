@@ -4,8 +4,11 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -13,12 +16,17 @@ import java.io.IOException;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
+import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
@@ -29,11 +37,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import pl.sapusers.mfsplc.Configurator;
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JSplitPane;
-import java.awt.GridLayout;
 
 @SuppressWarnings("serial")
 public class Sim extends JFrame {
@@ -86,8 +89,7 @@ public class Sim extends JFrame {
 					message = server.incoming.take();
 					Telegram telegram = new Telegram(configurator, message, Telegram.FROM_SAP);
 
-					if (telegram.getType().equals(configurator.getTelegramType("LIFE"))
-							&& tglbtnLife.isSelected()
+					if (telegram.getType().equals(configurator.getTelegramType("LIFE")) && tglbtnLife.isSelected()
 							|| !telegram.getType().equals(configurator.getTelegramType("LIFE")))
 						textTelegrams.addTelegram(telegram);
 
@@ -149,37 +151,50 @@ public class Sim extends JFrame {
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 823, 558);
-		
+
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
-		
+
 		JMenu mnFile = new JMenu("File");
 		menuBar.add(mnFile);
-		
+
 		JMenuItem mntmNew = new JMenuItem("New");
 		mnFile.add(mntmNew);
-		
+
+		mntmNew.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showMessageDialog(null, "Menu item: New");
+			}
+		});
+
 		JMenuItem mntmSave = new JMenuItem("Save");
+		mntmSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
 		mnFile.add(mntmSave);
-		
+
+		mntmSave.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showMessageDialog(null, "Menu item: Save");
+			}
+		});
+
 		JMenuItem mntmSaveAs = new JMenuItem("Save As");
 		mnFile.add(mntmSaveAs);
-		
+
 		JMenu mnEdit = new JMenu("Edit");
 		menuBar.add(mnEdit);
-		
+
 		JMenuItem mntmParameters = new JMenuItem("Parameters");
 		mnEdit.add(mntmParameters);
-		
+
 		JMenuItem mntmClearMainLog = new JMenuItem("Clear Main Log");
 		mnEdit.add(mntmClearMainLog);
-		
+
 		JMenuItem mntmClearAllLogs = new JMenuItem("Clear All Logs");
 		mnEdit.add(mntmClearAllLogs);
-		
+
 		JMenu mnHelp = new JMenu("Help");
 		menuBar.add(mnHelp);
-		
+
 		JMenuItem mntmAbout = new JMenuItem("About");
 		mnHelp.add(mntmAbout);
 		JPanel contentPanel = new JPanel();
@@ -187,50 +202,50 @@ public class Sim extends JFrame {
 
 		setContentPane(contentPanel);
 		contentPanel.setLayout(new BorderLayout(0, 0));
-				
-				JSplitPane splitPane = new JSplitPane();
-				contentPanel.add(splitPane, BorderLayout.CENTER);
-		
-				JPanel TelegramPanel = new JPanel();
-				splitPane.setLeftComponent(TelegramPanel);
-				TelegramPanel.setLayout(new BorderLayout(0, 0));
-				
-						JPanel OutboundTelegramPanel = new JPanel();
-						TelegramPanel.add(OutboundTelegramPanel, BorderLayout.NORTH);
-						OutboundTelegramPanel.setBorder(new TitledBorder(new LineBorder(new Color(184, 207, 229)), "Outgoing Telegram",
-								TitledBorder.LEADING, TitledBorder.TOP, null, new Color(51, 51, 51)));
-						OutboundTelegramPanel.setLayout(new BorderLayout(0, 0));
-						
-								JTextField textTelegram = new JTextField();
-								OutboundTelegramPanel.add(textTelegram, BorderLayout.NORTH);
-								textTelegram.addMouseListener(new MouseAdapter() {
-									@Override
-									public void mouseClicked(MouseEvent e) {
-										if (e.getClickCount() == 2) {
-											Telegram telegram = new Telegram(configurator, textTelegram.getText(), Telegram.TO_SAP);
-											new TelegramDialog(telegram, false, "Outbound telegram");
-											textTelegram.setText(telegram.getString());
-										}
-									}
-								});
-								textTelegram.setHorizontalAlignment(SwingConstants.LEFT);
-								textTelegram.setFont(new Font("Monospaced", Font.PLAIN, 12));
-								textTelegram.setColumns(100);
-								
-										JScrollPane scrollPane = new JScrollPane();
-										scrollPane.setAlignmentX(0.0f);
-										scrollPane.setAlignmentY(0.0f);
-										scrollPane.setViewportBorder(null);
-										scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-										scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-										TelegramPanel.add(scrollPane, BorderLayout.CENTER);
-										
-												textTelegrams = new TelegramsTextPane(this.configurator, scrollPane);
-												
-												JPanel panel = new JPanel();
-												splitPane.setRightComponent(panel);
-												panel.setLayout(new GridLayout(1, 0, 0, 0));
-		
+
+		JSplitPane splitPane = new JSplitPane();
+		contentPanel.add(splitPane, BorderLayout.CENTER);
+
+		JPanel TelegramPanel = new JPanel();
+		splitPane.setLeftComponent(TelegramPanel);
+		TelegramPanel.setLayout(new BorderLayout(0, 0));
+
+		JPanel OutboundTelegramPanel = new JPanel();
+		TelegramPanel.add(OutboundTelegramPanel, BorderLayout.NORTH);
+		OutboundTelegramPanel.setBorder(new TitledBorder(new LineBorder(new Color(184, 207, 229)), "Outgoing Telegram",
+				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(51, 51, 51)));
+		OutboundTelegramPanel.setLayout(new BorderLayout(0, 0));
+
+		JTextField textTelegram = new JTextField();
+		OutboundTelegramPanel.add(textTelegram, BorderLayout.NORTH);
+		textTelegram.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() == 2) {
+					Telegram telegram = new Telegram(configurator, textTelegram.getText(), Telegram.TO_SAP);
+					new TelegramDialog(telegram, false, "Outbound telegram");
+					textTelegram.setText(telegram.getString());
+				}
+			}
+		});
+		textTelegram.setHorizontalAlignment(SwingConstants.LEFT);
+		textTelegram.setFont(new Font("Monospaced", Font.PLAIN, 12));
+		textTelegram.setColumns(100);
+
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setAlignmentX(0.0f);
+		scrollPane.setAlignmentY(0.0f);
+		scrollPane.setViewportBorder(null);
+		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+		TelegramPanel.add(scrollPane, BorderLayout.CENTER);
+
+		textTelegrams = new TelegramsTextPane(this.configurator, scrollPane);
+
+		JPanel panel = new JPanel();
+		splitPane.setRightComponent(panel);
+		panel.setLayout(new GridLayout(1, 0, 0, 0));
+
 		JPanel TopPanel = new JPanel();
 		contentPanel.add(TopPanel, BorderLayout.NORTH);
 		TopPanel.setLayout(new BorderLayout(0, 0));
@@ -259,80 +274,80 @@ public class Sim extends JFrame {
 		tglAutoHandshake = new JToggleButton("Handshake");
 		TopLeftPanel.add(tglAutoHandshake);
 		tglAutoHandshake.setToolTipText("Send handshake telegrams automatically");
-		
+
 		tglAutoHandshake.setHorizontalAlignment(SwingConstants.RIGHT);
-		
-				tglbtnLife = new JToggleButton("Life");
-				TopLeftPanel.add(tglbtnLife);
-				tglbtnLife.setToolTipText("Show LIFE telegrams");
-				
-						JButton btnClear = new JButton("Clear");
-						TopLeftPanel.add(btnClear);
-						btnClear.addActionListener(new ActionListener() {
-							public void actionPerformed(ActionEvent e) {
-								textTelegrams.clear();
-							}
-						});
-						btnStartStop.addActionListener(new ActionListener() {
-							public void actionPerformed(ActionEvent ac) {
 
-								if (textPort.isEditable()) {
+		tglbtnLife = new JToggleButton("Life");
+		TopLeftPanel.add(tglbtnLife);
+		tglbtnLife.setToolTipText("Show LIFE telegrams");
 
-									try {
-										server = new TcpServer(Integer.parseUnsignedInt(textPort.getText()));
-										processor = new Thread(new TcpIpProcessor());
-										processor.setName("Telegram processor " + processor.getName());
-										processor.start();
-										monitor = new Thread(new TcpIpMonitor());
-										monitor.setName("Server monitor " + monitor.getName());
-										monitor.start();
-										textPort.setEditable(false);
-										textPort.setBackground(Color.YELLOW);
-										textPort.setText(Integer.toString(Integer.parseUnsignedInt(textPort.getText())));
-										btnStartStop.setText("Stop");
-									} catch (NumberFormatException | IOException e) {
-										JOptionPane.showMessageDialog(null, e, "Server could not be started",
-												JOptionPane.ERROR_MESSAGE);
-										logger.catching(e);
+		JButton btnClear = new JButton("Clear");
+		TopLeftPanel.add(btnClear);
+		btnClear.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				textTelegrams.clear();
+			}
+		});
+		btnStartStop.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ac) {
 
-										textPort.setEditable(true);
-										btnStartStop.setText("Start");
-										textPort.setBackground(Color.WHITE);
-										server.stopServer();
-										processor.interrupt();
-										monitor.interrupt();
-									}
+				if (textPort.isEditable()) {
 
-								} else {
-									server.stopServer();
-									processor.interrupt();
-									monitor.interrupt();
-									textPort.setEditable(true);
-									btnStartStop.setText("Start");
-									textPort.setBackground(Color.WHITE);
-									btnSend.setEnabled(false);
-								}
-							}
-						});
-						
-								JPanel TopRightPanel = new JPanel();
-								ControlsPanel.add(TopRightPanel, BorderLayout.EAST);
-								
-										btnSend = new JButton("Send");
-										TopRightPanel.add(btnSend);
-										btnSend.setEnabled(false);
-										btnSend.setHorizontalAlignment(SwingConstants.LEFT);
-										btnSend.addActionListener(new ActionListener() {
-											public void actionPerformed(ActionEvent e) {
-												if (!textTelegram.getText().equals("")) {
-													Telegram telegram = new Telegram(configurator, textTelegram.getText(), Telegram.TO_SAP);
-													server.outgoing.add(telegram.getString());
-													textTelegrams.addTelegram(telegram);
-													textTelegram.setText("");
-												}
-											}
-										});
-		
+					try {
+						server = new TcpServer(Integer.parseUnsignedInt(textPort.getText()));
+						processor = new Thread(new TcpIpProcessor());
+						processor.setName("Telegram processor " + processor.getName());
+						processor.start();
+						monitor = new Thread(new TcpIpMonitor());
+						monitor.setName("Server monitor " + monitor.getName());
+						monitor.start();
+						textPort.setEditable(false);
+						textPort.setBackground(Color.YELLOW);
+						textPort.setText(Integer.toString(Integer.parseUnsignedInt(textPort.getText())));
+						btnStartStop.setText("Stop");
+					} catch (NumberFormatException | IOException e) {
+						JOptionPane.showMessageDialog(null, e, "Server could not be started",
+								JOptionPane.ERROR_MESSAGE);
+						logger.catching(e);
+
+						textPort.setEditable(true);
+						btnStartStop.setText("Start");
+						textPort.setBackground(Color.WHITE);
+						server.stopServer();
+						processor.interrupt();
+						monitor.interrupt();
+					}
+
+				} else {
+					server.stopServer();
+					processor.interrupt();
+					monitor.interrupt();
+					textPort.setEditable(true);
+					btnStartStop.setText("Start");
+					textPort.setBackground(Color.WHITE);
+					btnSend.setEnabled(false);
+				}
+			}
+		});
+
+		JPanel TopRightPanel = new JPanel();
+		ControlsPanel.add(TopRightPanel, BorderLayout.EAST);
+
+		btnSend = new JButton("Send");
+		TopRightPanel.add(btnSend);
+		btnSend.setEnabled(false);
+		btnSend.setHorizontalAlignment(SwingConstants.LEFT);
+		btnSend.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (!textTelegram.getText().equals("")) {
+					Telegram telegram = new Telegram(configurator, textTelegram.getText(), Telegram.TO_SAP);
+					server.outgoing.add(telegram.getString());
+					textTelegrams.addTelegram(telegram);
+					textTelegram.setText("");
+				}
+			}
+		});
+
 		if (configurator.getHandshakeMode().equals("C")) {
 			tglAutoHandshake.setSelected(false);
 			tglAutoHandshake.setEnabled(false);
