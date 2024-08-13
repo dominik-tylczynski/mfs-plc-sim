@@ -29,12 +29,17 @@ public class Configurator {
 			configurator = new Configurator(args[0], args[1], args[2]);
 			break;
 		}
+
+//		System.out.println(configurator.getHandshakeRequest());
+//		System.out.println(configurator.getHandshakeConfirmation());
+//		System.out.println(configurator.getTelegramStructure("WT"));
+//		System.out.println(configurator.getTelegramStructure("WTCO"));
 		
-		System.out.println(configurator.getHandshakeRequest());
-		System.out.println(configurator.getHandshakeRequest());
-		System.out.println(configurator.getHandshakeRequest());
-		System.out.println(configurator.getSendingFM());
+		System.out.println(configurator.addFillCharacter(configurator.getHandshakeConfirmation(), "2"));
+		System.out.println(configurator.addFillCharacter(configurator.getHandshakeConfirmation(), "2").length());
+
 	}
+
 	private Properties configProperties;
 	private String configPropertiesFileName;
 
@@ -67,25 +72,25 @@ public class Configurator {
 		for (String propertyKey : new TreeSet<String>(configProperties.stringPropertyNames())) {
 			logger.debug(propertyKey + " = " + configProperties.getProperty(propertyKey));
 		}
-		
+
 	}
 
 	public String getHandshakeConfirmation() {
-		return getProperty("handshakeConfirmation");
+		return removeFillCharacter(getProperty("handshakeConfirmation"));
 	}
 
 	public String getHandshakeRequest() {
-		return getProperty("handshakeRequest");
+		return removeFillCharacter(getProperty("handshakeRequest"));
 	}
 
 	public String getJCoDestination() {
 		return getProperty("jcoDestination");
-	}	
-	
+	}
+
 	public String getJCoServer() {
 		return getProperty("jcoServer");
 	}
-	
+
 	public String getSendingFM() {
 		return getProperty("sendingFM");
 	}
@@ -107,13 +112,24 @@ public class Configurator {
 	}
 
 	public String getTelegramStructure(String telegramType) {
-		return getProperty("telegramStructure." + telegramType);	
+		String telegramStructure;
+
+		// standard way - get telegram structure for telegram type without trailing fill
+		// characters
+		telegramStructure = getProperty("telegramStructure." + removeFillCharacter(telegramType));
+
+		// fallback, backwards compatibility - get telegram structure for telegram type
+		// with trailing fill characters
+		if (telegramStructure == null)
+			telegramStructure = getProperty("telegramStructure." + addFillCharacter(removeFillCharacter(telegramType), "4"));
+		
+		return telegramStructure;
 	}
-	
+
 	public String getTelegramStructureHeader() {
 		return getProperty("telegramStructureHeader");
 	}
-	
+
 	public List<TelegramStyle> getTelegramStyles() {
 		List<TelegramStyle> styles = new ArrayList<TelegramStyle>();
 
@@ -121,7 +137,7 @@ public class Configurator {
 
 		for (String propertyKey : propertyKeys) {
 			if (propertyKey.contains("style")) {
-				styles.add(new TelegramStyle(propertyKey, configProperties.getProperty(propertyKey)));
+				styles.add(new TelegramStyle(removeFillCharacter(propertyKey), configProperties.getProperty(propertyKey)));
 			}
 		}
 
@@ -129,16 +145,43 @@ public class Configurator {
 	}
 
 	public String getTelegramType(String type) {
-		return getProperty("telegramType." + type);
+		return getProperty("telegramType." + type.replaceFirst("[" + getFillCharacter() + "]++$", ""));
 	}
-	
+
+	public String getHandshakeMode() {
+		return getProperty("handshakeMode");
+	}
+
+	public char getFillCharacter() {
+		String fillCharacter = getProperty("fillCharacter");
+
+		if (fillCharacter == null || fillCharacter.equals(""))
+			return ' ';
+		else
+			return fillCharacter.charAt(0);
+	}
+
 	private String getProperty(String property) {
 		String value = configProperties.getProperty(property);
 
-		if (value == null || value.equals(""))
+		if (value == null)
 			logger.error("Property " + property + " not defined in the config file: " + configPropertiesFileName);
 
 		return value;
+	}
+
+	public String addFillCharacter(String property, String length) {
+		if (property == null)
+			return property;
+		else
+			return String.format("%-" + length + "s", property).replace(' ', getFillCharacter()).trim();
+	}
+
+	public String removeFillCharacter(String property) {
+		if (property == null)
+			return property;
+		else
+			return property.replaceFirst("[" + getFillCharacter() + "]++$", "");
 	}
 
 }
