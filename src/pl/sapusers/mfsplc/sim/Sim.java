@@ -29,6 +29,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import pl.sapusers.mfsplc.Configurator;
+import javax.swing.JMenuBar;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JSplitPane;
+import java.awt.GridLayout;
 
 @SuppressWarnings("serial")
 public class Sim extends JFrame {
@@ -44,7 +49,6 @@ public class Sim extends JFrame {
 	private JTextField textPort;
 	private JToggleButton tglAutoHandshake;
 	private JButton btnSend;
-	private JTextField textField;
 
 	class TcpIpMonitor implements Runnable {
 		@Override
@@ -145,62 +149,91 @@ public class Sim extends JFrame {
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 823, 558);
+		
+		JMenuBar menuBar = new JMenuBar();
+		setJMenuBar(menuBar);
+		
+		JMenu mnFile = new JMenu("File");
+		menuBar.add(mnFile);
+		
+		JMenuItem mntmNew = new JMenuItem("New");
+		mnFile.add(mntmNew);
+		
+		JMenuItem mntmSave = new JMenuItem("Save");
+		mnFile.add(mntmSave);
+		
+		JMenuItem mntmSaveAs = new JMenuItem("Save As");
+		mnFile.add(mntmSaveAs);
+		
+		JMenu mnEdit = new JMenu("Edit");
+		menuBar.add(mnEdit);
+		
+		JMenuItem mntmParameters = new JMenuItem("Parameters");
+		mnEdit.add(mntmParameters);
+		
+		JMenuItem mntmClearMainLog = new JMenuItem("Clear Main Log");
+		mnEdit.add(mntmClearMainLog);
+		
+		JMenuItem mntmClearAllLogs = new JMenuItem("Clear All Logs");
+		mnEdit.add(mntmClearAllLogs);
+		
+		JMenu mnHelp = new JMenu("Help");
+		menuBar.add(mnHelp);
+		
+		JMenuItem mntmAbout = new JMenuItem("About");
+		mnHelp.add(mntmAbout);
 		JPanel contentPanel = new JPanel();
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 
 		setContentPane(contentPanel);
 		contentPanel.setLayout(new BorderLayout(0, 0));
-
-		JPanel TelegramPanel = new JPanel();
-		contentPanel.add(TelegramPanel, BorderLayout.CENTER);
-		TelegramPanel.setLayout(new BorderLayout(0, 0));
-
-		JPanel OutboundTelegramPanel = new JPanel();
-		TelegramPanel.add(OutboundTelegramPanel, BorderLayout.NORTH);
-		OutboundTelegramPanel.setBorder(new TitledBorder(new LineBorder(new Color(184, 207, 229)), "Outgoing Telegram",
-				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(51, 51, 51)));
-		OutboundTelegramPanel.setLayout(new BorderLayout(0, 0));
-
-		JTextField textTelegram = new JTextField();
-		OutboundTelegramPanel.add(textTelegram, BorderLayout.NORTH);
-		textTelegram.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (e.getClickCount() == 2) {
-					Telegram telegram = new Telegram(configurator, textTelegram.getText(), Telegram.TO_SAP);
-					new TelegramDialog(telegram, false, "Outbound telegram");
-					textTelegram.setText(telegram.getString());
-				}
-			}
-		});
-		textTelegram.setHorizontalAlignment(SwingConstants.LEFT);
-		textTelegram.setFont(new Font("Monospaced", Font.PLAIN, 12));
-		textTelegram.setColumns(100);
-
-		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setAlignmentX(0.0f);
-		scrollPane.setAlignmentY(0.0f);
-		scrollPane.setViewportBorder(null);
-		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-		TelegramPanel.add(scrollPane, BorderLayout.CENTER);
-
-		textTelegrams = new TelegramsTextPane(this.configurator, scrollPane);
+				
+				JSplitPane splitPane = new JSplitPane();
+				contentPanel.add(splitPane, BorderLayout.CENTER);
+		
+				JPanel TelegramPanel = new JPanel();
+				splitPane.setLeftComponent(TelegramPanel);
+				TelegramPanel.setLayout(new BorderLayout(0, 0));
+				
+						JPanel OutboundTelegramPanel = new JPanel();
+						TelegramPanel.add(OutboundTelegramPanel, BorderLayout.NORTH);
+						OutboundTelegramPanel.setBorder(new TitledBorder(new LineBorder(new Color(184, 207, 229)), "Outgoing Telegram",
+								TitledBorder.LEADING, TitledBorder.TOP, null, new Color(51, 51, 51)));
+						OutboundTelegramPanel.setLayout(new BorderLayout(0, 0));
+						
+								JTextField textTelegram = new JTextField();
+								OutboundTelegramPanel.add(textTelegram, BorderLayout.NORTH);
+								textTelegram.addMouseListener(new MouseAdapter() {
+									@Override
+									public void mouseClicked(MouseEvent e) {
+										if (e.getClickCount() == 2) {
+											Telegram telegram = new Telegram(configurator, textTelegram.getText(), Telegram.TO_SAP);
+											new TelegramDialog(telegram, false, "Outbound telegram");
+											textTelegram.setText(telegram.getString());
+										}
+									}
+								});
+								textTelegram.setHorizontalAlignment(SwingConstants.LEFT);
+								textTelegram.setFont(new Font("Monospaced", Font.PLAIN, 12));
+								textTelegram.setColumns(100);
+								
+										JScrollPane scrollPane = new JScrollPane();
+										scrollPane.setAlignmentX(0.0f);
+										scrollPane.setAlignmentY(0.0f);
+										scrollPane.setViewportBorder(null);
+										scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+										scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+										TelegramPanel.add(scrollPane, BorderLayout.CENTER);
+										
+												textTelegrams = new TelegramsTextPane(this.configurator, scrollPane);
+												
+												JPanel panel = new JPanel();
+												splitPane.setRightComponent(panel);
+												panel.setLayout(new GridLayout(1, 0, 0, 0));
 		
 		JPanel TopPanel = new JPanel();
 		contentPanel.add(TopPanel, BorderLayout.NORTH);
 		TopPanel.setLayout(new BorderLayout(0, 0));
-		
-		JPanel DescriptionPanel = new JPanel();
-		DescriptionPanel.setBorder(new TitledBorder(null, "PLC Description", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		TopPanel.add(DescriptionPanel, BorderLayout.NORTH);
-		DescriptionPanel.setLayout(new BorderLayout(0, 0));
-		
-		textField = new JTextField();
-		textField.setFont(new Font("Monospaced", Font.PLAIN, 12));
-		textField.setHorizontalAlignment(SwingConstants.LEFT);
-		DescriptionPanel.add(textField, BorderLayout.NORTH);
-		textField.setColumns(100);
 
 		JPanel ControlsPanel = new JPanel();
 		TopPanel.add(ControlsPanel, BorderLayout.SOUTH);
