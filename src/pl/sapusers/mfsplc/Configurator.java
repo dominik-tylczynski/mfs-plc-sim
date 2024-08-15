@@ -1,5 +1,6 @@
 package pl.sapusers.mfsplc;
 
+import java.awt.Color;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -34,7 +35,7 @@ public class Configurator {
 //		System.out.println(configurator.getHandshakeConfirmation());
 //		System.out.println(configurator.getTelegramStructure("WT"));
 //		System.out.println(configurator.getTelegramStructure("WTCO"));
-		
+
 		System.out.println(configurator.addFillCharacter(configurator.getHandshakeConfirmation(), "2"));
 		System.out.println(configurator.addFillCharacter(configurator.getHandshakeConfirmation(), "2").length());
 
@@ -121,8 +122,9 @@ public class Configurator {
 		// fallback, backwards compatibility - get telegram structure for telegram type
 		// with trailing fill characters
 		if (telegramStructure == null)
-			telegramStructure = getProperty("telegramStructure." + addFillCharacter(removeFillCharacter(telegramType), "4"));
-		
+			telegramStructure = getProperty(
+					"telegramStructure." + addFillCharacter(removeFillCharacter(telegramType), "4"));
+
 		return telegramStructure;
 	}
 
@@ -137,7 +139,8 @@ public class Configurator {
 
 		for (String propertyKey : propertyKeys) {
 			if (propertyKey.contains("style")) {
-				styles.add(new TelegramStyle(removeFillCharacter(propertyKey), configProperties.getProperty(propertyKey)));
+				styles.add(
+						new TelegramStyle(removeFillCharacter(propertyKey), configProperties.getProperty(propertyKey)));
 			}
 		}
 
@@ -184,4 +187,19 @@ public class Configurator {
 			return property.replaceFirst("[" + getFillCharacter() + "]++$", "");
 	}
 
+	public int getGridSize() {
+		return Integer.parseInt(getProperty("gridSize"));
+	}
+	
+	public int getSimualtionStepDelay() {
+		return Integer.parseInt(getProperty("simulationStepDelay"));
+	}
+
+	public Color getPlcColor() {
+		String[] styleParts = getProperty("plcColor").split(",");
+		
+		return new Color(Integer.parseInt(styleParts[0]), Integer.parseInt(styleParts[1]),
+				Integer.parseInt(styleParts[2]));		
+	}	
+	
 }
