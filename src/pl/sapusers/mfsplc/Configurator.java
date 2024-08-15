@@ -191,7 +191,16 @@ public class Configurator {
 		return Integer.parseInt(getProperty("gridSize"));
 	}
 	
-	public int getSimualtionStepDelay() {
+	public int getCellSize() {
+		return Integer.parseInt(getProperty("cellSize"));
+	}
+	
+	public int getZoomStep() {
+		return Integer.parseInt(getProperty("zoomStep"));
+	}	
+	
+	
+	public int getSimulationStepDelay() {
 		return Integer.parseInt(getProperty("simulationStepDelay"));
 	}
 

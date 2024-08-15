@@ -1,5 +1,7 @@
 package pl.sapusers.mfsplc.sim;
 
+import java.awt.GridBagConstraints;
+
 import pl.sapusers.mfsplc.Configurator;
 
 public class SimController {
@@ -14,10 +16,15 @@ public class SimController {
 
 	public void init() {
 		view = new SimView(configurator);
+		model = new SimModel(configurator);
 
+		GridBagConstraints gbc = new GridBagConstraints();
+		
 		for (int x = 0; x < configurator.getGridSize(); x++) {
 			for (int y = 0; y < configurator.getGridSize(); y++) {
-				view.add(new PlcCell(x, y));
+				gbc.gridx = x;
+				gbc.gridy = y;
+				view.add(new PlcCell(x, y, configurator.getCellSize()), gbc);
 			}
 		}
 	}

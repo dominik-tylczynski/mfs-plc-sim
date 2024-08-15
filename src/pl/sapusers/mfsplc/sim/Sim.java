@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -37,6 +36,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import pl.sapusers.mfsplc.Configurator;
+import javax.swing.JSeparator;
 
 @SuppressWarnings("serial")
 public class Sim extends JFrame {
@@ -45,7 +45,7 @@ public class Sim extends JFrame {
 	private Configurator configurator;
 	private Thread processor;
 	private Thread monitor;
-
+	private SimController controller;
 	private TcpServer server;
 	private TelegramsTextPane textTelegrams;
 	private JToggleButton tglbtnLife;
@@ -149,6 +149,8 @@ public class Sim extends JFrame {
 	public Sim(Configurator configurator) {
 		this.configurator = configurator;
 
+		 controller = new SimController(configurator);
+		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 823, 558);
 
@@ -191,7 +193,29 @@ public class Sim extends JFrame {
 
 		JMenuItem mntmClearAllLogs = new JMenuItem("Clear All Logs");
 		mnEdit.add(mntmClearAllLogs);
-
+		
+		JSeparator separator = new JSeparator();
+		mnEdit.add(separator);
+		
+		JMenuItem mntmZoomIn = new JMenuItem("Zoom In");
+		mntmZoomIn.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
+		mnEdit.add(mntmZoomIn);
+		mntmZoomIn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			controller.getView().zoomIn();	
+			}
+		});		
+		
+		JMenuItem mntmZoomOut = new JMenuItem("Zoom Out");
+		mntmZoomOut.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, InputEvent.CTRL_DOWN_MASK));
+		mnEdit.add(mntmZoomOut);
+		mntmZoomOut.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			controller.getView().zoomOut();	
+			}
+		});	
+		
+		
 		JMenu mnHelp = new JMenu("Help");
 		menuBar.add(mnHelp);
 
@@ -241,11 +265,15 @@ public class Sim extends JFrame {
 		TelegramPanel.add(scrollPane, BorderLayout.CENTER);
 
 		textTelegrams = new TelegramsTextPane(this.configurator, scrollPane);
-
-		JPanel panel = new JPanel();
-		splitPane.setRightComponent(panel);
-		panel.setLayout(new GridLayout(1, 0, 0, 0));
-
+		
+		JScrollPane simViewPane = new JScrollPane();
+		simViewPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		simViewPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+		splitPane.setRightComponent(simViewPane);
+		
+		
+		simViewPane.setViewportView(controller.getView());
+		
 		JPanel TopPanel = new JPanel();
 		contentPanel.add(TopPanel, BorderLayout.NORTH);
 		TopPanel.setLayout(new BorderLayout(0, 0));
