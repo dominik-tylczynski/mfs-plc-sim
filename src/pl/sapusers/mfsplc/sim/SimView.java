@@ -7,9 +7,8 @@ import javax.swing.JPanel;
 import pl.sapusers.mfsplc.Configurator;
 
 public class SimView extends JPanel {
-	Configurator configurator;
+	private Configurator configurator;
 	
-
 	SimView(Configurator configurator) {
 		super();
 		this.configurator = configurator;
