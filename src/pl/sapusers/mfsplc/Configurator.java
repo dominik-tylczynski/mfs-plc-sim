@@ -211,4 +211,11 @@ public class Configurator {
 				Integer.parseInt(styleParts[2]));		
 	}	
 	
+	public Color getCellColor() {
+		String[] styleParts = getProperty("cellColor").split(",");
+		
+		return new Color(Integer.parseInt(styleParts[0]), Integer.parseInt(styleParts[1]),
+				Integer.parseInt(styleParts[2]));		
+	}	
+	
 }

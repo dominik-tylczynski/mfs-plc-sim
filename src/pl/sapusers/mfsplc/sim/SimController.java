@@ -1,6 +1,10 @@
 package pl.sapusers.mfsplc.sim;
 
-import java.awt.GridBagConstraints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 
 import pl.sapusers.mfsplc.Configurator;
 
@@ -15,18 +19,9 @@ public class SimController {
 	}
 
 	public void init() {
-		view = new SimView(configurator);
+		view = new SimView(configurator, this);
 		model = new SimModel(configurator);
 
-		GridBagConstraints gbc = new GridBagConstraints();
-		
-		for (int x = 0; x < configurator.getGridSize(); x++) {
-			for (int y = 0; y < configurator.getGridSize(); y++) {
-				gbc.gridx = x;
-				gbc.gridy = y;
-				view.add(new PlcCell(x, y, configurator.getCellSize()), gbc);
-			}
-		}
 	}
 
 	public SimView getView() {
@@ -35,6 +30,11 @@ public class SimController {
 
 	public SimModel getModel() {
 		return model;
+	}
+
+	public void createPlc(Position pos) {
+		model.createPlc(pos);
+		view.setCellEnabled(pos, true);
 	}
 
 }
