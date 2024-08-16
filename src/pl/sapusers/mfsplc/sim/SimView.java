@@ -42,8 +42,9 @@ public class SimView extends JPanel implements ActionListener, MouseListener, Mo
 
 				GridCell cell = new GridCell(x, y, configurator.getCellSize(), configurator.getCellColor());
 				cells.put(cell.pos, cell);
+				
+//				cell.setText(Integer.valueOf(x).toString());
 
-				cell.setText(Integer.valueOf(x).toString());
 				cell.addActionListener(this);
 				cell.addMouseListener(this);
 				cell.addMouseMotionListener(this);
@@ -92,7 +93,6 @@ public class SimView extends JPanel implements ActionListener, MouseListener, Mo
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -118,13 +118,13 @@ public class SimView extends JPanel implements ActionListener, MouseListener, Mo
 	@Override
 	public void mouseEntered(MouseEvent e) {
 		// TODO Auto-generated method stub
-		((GridCell) e.getComponent()).setBorder(BorderFactory.createLoweredSoftBevelBorder());
+//		((GridCell) e.getComponent()).setBorder(BorderFactory.createLoweredSoftBevelBorder());
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
 		// TODO Auto-generated method stub
-		((GridCell) e.getComponent()).setBorder(BorderFactory.createEmptyBorder());
+//		((GridCell) e.getComponent()).setBorder(BorderFactory.createEmptyBorder());
 
 	}
 

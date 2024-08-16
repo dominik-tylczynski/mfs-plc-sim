@@ -4,8 +4,9 @@ import java.util.ArrayList;
 
 public class Plc {
 	private ArrayList<Position> cells;
-
+	
 	public Plc(Position pos) {
+		cells = new ArrayList<Position>();
 		cells.add(pos);
 	}
 	

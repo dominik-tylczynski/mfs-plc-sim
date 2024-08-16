@@ -14,9 +14,11 @@ public class GridCell extends JToggleButton {
 		super();
 
 		this.pos = new Position(x, y);
-		setEnabled(false);
+		if (x != y)
+			setEnabled(false);
 		setBorder(BorderFactory.createEmptyBorder());
-		setBackground(cellColor);
+//		setBackground(Color.RED);
+//		setForeground(Color.RED);
 		this.size = size;
 	}
 
@@ -24,6 +26,15 @@ public class GridCell extends JToggleButton {
 	public Dimension getPreferredSize() {
 		return new Dimension(size, size);
 	}
-	
+
+	@Override
+	public Color getBackground() {
+		if (!isEnabled())
+			return Color.GRAY;
+		if (isSelected())
+			return Color.GREEN;
+		else
+			return Color.GREEN.darker();
+	}
+
 }
-	
