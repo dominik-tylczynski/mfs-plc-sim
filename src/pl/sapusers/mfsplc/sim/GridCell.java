@@ -27,14 +27,14 @@ public class GridCell extends JToggleButton {
 		return new Dimension(size, size);
 	}
 
-	@Override
-	public Color getBackground() {
-		if (!isEnabled())
-			return Color.GRAY;
-		if (isSelected())
-			return Color.GREEN;
-		else
-			return Color.GREEN.darker();
-	}
+//	@Override
+//	public Color getBackground() {
+//		if (!isEnabled())
+//			return Color.GRAY;
+//		if (isSelected())
+//			return Color.RED;
+//		else
+//			return Color.GREEN.darker();
+//	}
 
 }

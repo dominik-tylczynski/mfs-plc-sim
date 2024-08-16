@@ -1,5 +1,6 @@
 package pl.sapusers.mfsplc.sim;
 
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -42,7 +43,7 @@ public class SimView extends JPanel implements ActionListener, MouseListener, Mo
 
 				GridCell cell = new GridCell(x, y, configurator.getCellSize(), configurator.getCellColor());
 				cells.put(cell.pos, cell);
-				
+
 //				cell.setText(Integer.valueOf(x).toString());
 
 				cell.addActionListener(this);
@@ -93,6 +94,11 @@ public class SimView extends JPanel implements ActionListener, MouseListener, Mo
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
+		if (((GridCell) e.getSource()).isSelected())
+			((GridCell) e.getSource()).setBackground(Color.RED);
+		else {
+			((GridCell) e.getSource()).setBackground(Color.GREEN);
+		}
 	}
 
 	@Override
