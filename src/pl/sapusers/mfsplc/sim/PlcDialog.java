@@ -1,28 +1,33 @@
 package pl.sapusers.mfsplc.sim;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
-import java.awt.GridLayout;
 import javax.swing.SwingConstants;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import java.awt.Dimension;
+import javax.swing.border.EmptyBorder;
+
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.FormSpecs;
+import com.jgoodies.forms.layout.RowSpec;
 
 public class PlcDialog extends JDialog {
 
 	private static final long serialVersionUID = 1L;
 	private final JPanel contentPanel = new JPanel();
 	private JTextField txtPlcName;
-	private JTextField txtExecutionDelay;
 	private JLabel lblPlcName;
+	private JLabel lblPlcColor;
+	private JLabel lblExecutionDelayms;
+	private JTextField txtPLCcolor;
+	private JTextField txtExecutionDelay;
 
 	/**
 	 * Launch the application.
@@ -45,71 +50,56 @@ public class PlcDialog extends JDialog {
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		GridBagLayout gbl_contentPanel = new GridBagLayout();
-		gbl_contentPanel.columnWidths = new int[]{215, 215, 0};
-		gbl_contentPanel.rowHeights = new int[]{74, 74, 74, 0};
-		gbl_contentPanel.columnWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
-		gbl_contentPanel.rowWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
-		contentPanel.setLayout(gbl_contentPanel);
+		contentPanel.setLayout(new FormLayout(new ColumnSpec[] {
+				FormSpecs.UNRELATED_GAP_COLSPEC,
+				ColumnSpec.decode("79px"),
+				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,
+				ColumnSpec.decode("114px"),},
+			new RowSpec[] {
+				FormSpecs.PARAGRAPH_GAP_ROWSPEC,
+				RowSpec.decode("21px"),
+				FormSpecs.UNRELATED_GAP_ROWSPEC,
+				RowSpec.decode("21px"),
+				FormSpecs.UNRELATED_GAP_ROWSPEC,
+				RowSpec.decode("21px"),}));
 		{
 			lblPlcName = new JLabel("PLC Name:");
+			lblPlcName.setAlignmentY(0.0f);
 			lblPlcName.setHorizontalAlignment(SwingConstants.LEFT);
-			GridBagConstraints gbc_lblPlcName = new GridBagConstraints();
-			gbc_lblPlcName.ipady = 5;
-			gbc_lblPlcName.ipadx = 5;
-			gbc_lblPlcName.anchor = GridBagConstraints.NORTHWEST;
-			gbc_lblPlcName.insets = new Insets(1, 1, 1, 1);
-			gbc_lblPlcName.gridx = 0;
-			gbc_lblPlcName.gridy = 0;
-			contentPanel.add(lblPlcName, gbc_lblPlcName);
+			contentPanel.add(lblPlcName, "2, 2, fill, center");
 		}
 		{
 			txtPlcName = new JTextField();
+			lblPlcName.setLabelFor(txtPlcName);
 			txtPlcName.setSize(new Dimension(5, 21));
 			txtPlcName.setMaximumSize(new Dimension(5, 21));
-			GridBagConstraints gbc_txtPlcName = new GridBagConstraints();
-			gbc_txtPlcName.anchor = GridBagConstraints.NORTHWEST;
-			gbc_txtPlcName.gridx = 1;
-			gbc_txtPlcName.gridy = 0;
-			contentPanel.add(txtPlcName, gbc_txtPlcName);
+			contentPanel.add(txtPlcName, "4, 2, left, center");
 			txtPlcName.setColumns(10);
 		}
 		{
-			JLabel lblPlcColor = new JLabel("PLC Color:");
-			lblPlcColor.setHorizontalAlignment(SwingConstants.RIGHT);
-			GridBagConstraints gbc_lblPlcColor = new GridBagConstraints();
-			gbc_lblPlcColor.anchor = GridBagConstraints.NORTHWEST;
-			gbc_lblPlcColor.insets = new Insets(0, 0, 5, 5);
-			gbc_lblPlcColor.gridx = 0;
-			gbc_lblPlcColor.gridy = 1;
-			contentPanel.add(lblPlcColor, gbc_lblPlcColor);
+			lblPlcColor = new JLabel("PLC Color:");
+			lblPlcColor.setHorizontalAlignment(SwingConstants.LEFT);
+			contentPanel.add(lblPlcColor, "2, 4, fill, center");
 		}
 		{
-			JButton btnPlcColor = new JButton("PLC Color");
-			GridBagConstraints gbc_btnPlcColor = new GridBagConstraints();
-			gbc_btnPlcColor.anchor = GridBagConstraints.NORTHWEST;
-			gbc_btnPlcColor.insets = new Insets(0, 0, 5, 0);
-			gbc_btnPlcColor.gridx = 1;
-			gbc_btnPlcColor.gridy = 1;
-			contentPanel.add(btnPlcColor, gbc_btnPlcColor);
+			txtPLCcolor = new JTextField();
+			txtPLCcolor.setHorizontalAlignment(SwingConstants.LEFT);
+			txtPLCcolor.setEditable(false);
+			txtPLCcolor.setBackground(Color.RED);
+			contentPanel.add(txtPLCcolor, "4, 4, left, center");
+			txtPLCcolor.setColumns(5);
 		}
 		{
-			JLabel lblExecutionDelayms = new JLabel("Execution Delay [ms]:");
-			lblExecutionDelayms.setHorizontalAlignment(SwingConstants.RIGHT);
-			GridBagConstraints gbc_lblExecutionDelayms = new GridBagConstraints();
-			gbc_lblExecutionDelayms.anchor = GridBagConstraints.NORTHWEST;
-			gbc_lblExecutionDelayms.insets = new Insets(0, 0, 0, 5);
-			gbc_lblExecutionDelayms.gridx = 0;
-			gbc_lblExecutionDelayms.gridy = 2;
-			contentPanel.add(lblExecutionDelayms, gbc_lblExecutionDelayms);
+			lblExecutionDelayms = new JLabel("Step Delay:");
+			lblExecutionDelayms.setToolTipText("");
+			lblExecutionDelayms.setHorizontalAlignment(SwingConstants.LEFT);
+			contentPanel.add(lblExecutionDelayms, "2, 6, fill, center");
 		}
 		{
 			txtExecutionDelay = new JTextField();
-			GridBagConstraints gbc_txtExecutionDelay = new GridBagConstraints();
-			gbc_txtExecutionDelay.anchor = GridBagConstraints.NORTHWEST;
-			gbc_txtExecutionDelay.gridx = 1;
-			gbc_txtExecutionDelay.gridy = 2;
-			contentPanel.add(txtExecutionDelay, gbc_txtExecutionDelay);
+			txtExecutionDelay.setToolTipText("in miliseconds");
+			lblExecutionDelayms.setLabelFor(txtExecutionDelay);
+			contentPanel.add(txtExecutionDelay, "4, 6, left, center");
 			txtExecutionDelay.setColumns(4);
 		}
 		{
