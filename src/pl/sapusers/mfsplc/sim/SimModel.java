@@ -1,12 +1,18 @@
 package pl.sapusers.mfsplc.sim;
 
+import java.awt.Color;
 import java.util.ArrayList;
 
 import pl.sapusers.mfsplc.Configurator;
 
 public class SimModel {
-	private Configurator configurator;
+// saved attributes
 	private ArrayList<Plc> plcs;
+	private Color backgroundColor;
+	
+	
+	private Configurator configurator;
+
 
 	public SimModel(Configurator configurator) {
 		this.configurator = configurator;
@@ -23,6 +29,14 @@ public class SimModel {
 		}
 		
 		return null;
+	}
+	
+	public ArrayList<Plc> getPlc() {
+		return plcs;
+	}
+	
+	public void setBackgrounColor(Color backgroundColor) {
+		this.backgroundColor = backgroundColor;
 	}
 	
 }

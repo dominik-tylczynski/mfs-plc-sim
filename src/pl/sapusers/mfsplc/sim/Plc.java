@@ -1,15 +1,33 @@
 package pl.sapusers.mfsplc.sim;
 
+import java.awt.Color;
 import java.util.ArrayList;
 
 public class Plc {
+// saved attributes
 	private ArrayList<Position> cells;
+	private Color color;
+	private String name;
 	
 	public Plc(Position pos) {
 		cells = new ArrayList<Position>();
 		cells.add(pos);
+		this.name = Integer.valueOf(pos.x).toString() + "-" + Integer.valueOf(pos.y).toString();
 	}
 	
+	
+	public Color getColor() {
+		return color;
+	}
+
+	public void setColor(Color color) {
+		this.color = color;
+	}
+	
+	public String getName() {
+		return name;
+	}
+
 	public void appendCell(Position pos) {
 		if (!cells.contains(pos))
 			cells.add(pos);

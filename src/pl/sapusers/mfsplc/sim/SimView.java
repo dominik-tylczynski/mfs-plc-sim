@@ -4,16 +4,12 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.HashMap;
 
-import javax.swing.BorderFactory;
 import javax.swing.JColorChooser;
 import javax.swing.JPanel;
 
@@ -80,24 +76,13 @@ public class SimView extends JPanel implements MouseListener, MouseMotionListene
 		repaint();
 	}
 
-	public void setCellEnabled(Position pos, boolean enabled) {
-		GridCell cell = cells.get(pos);
-		if (cell != null)
-			cell.setEnabled(enabled);
-	}
-
-	public void setCellSelected(Position pos, boolean selected) {
-		GridCell cell = cells.get(pos);
-		if (cell != null) {
-//			cell.setSelected(selected);
-		}
-	}
-
 	public void changeBackgroundColor() {
 		Color newColor = JColorChooser.showDialog(this.getParent(), "Set Background Color", cellColor);
 
 		if (newColor == null)
 			return;
+		else
+			cellColor = newColor;
 
 		Component[] cells = getComponents();
 
@@ -110,9 +95,14 @@ public class SimView extends JPanel implements MouseListener, MouseMotionListene
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
-//		if (e.getClickCount() == 2 && !((GridCell) e.getComponent()).isSelected()) {
-//			controller.createPlc(((GridCell) e.getComponent()).pos);
-//		}
+		switch (e.getClickCount()) {
+		case 2:
+			controller.handleMouseDoubleClick(((GridCell) e.getComponent()).pos);
+			break;
+		case 1:
+			controller.handleMouseClick(((GridCell) e.getComponent()).pos);
+			break;
+		}
 	}
 
 	@Override

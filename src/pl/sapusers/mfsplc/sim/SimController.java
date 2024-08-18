@@ -34,7 +34,31 @@ public class SimController {
 
 	public void createPlc(Position pos) {
 		model.createPlc(pos);
-		view.setCellEnabled(pos, true);
+	}
+
+	public void handleMouseClick(Position pos) {
+
+	}
+
+	public void handleMouseDoubleClick(Position pos) {
+		Plc plc = model.getPlc(pos);
+
+		if (plc == null) {
+// create PLC
+			// call PLC dialog
+			model.createPlc(pos);
+		} else {
+// change PLC
+			
+		}
+	}
+
+	public void paintPlc(Plc plc) {
+
+	}
+	
+	public void selectPlc() {
+		
 	}
 
 }
