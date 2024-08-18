@@ -1,6 +1,7 @@
 package pl.sapusers.mfsplc.sim;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -13,13 +14,15 @@ import java.awt.event.MouseMotionListener;
 import java.util.HashMap;
 
 import javax.swing.BorderFactory;
+import javax.swing.JColorChooser;
 import javax.swing.JPanel;
 
 import pl.sapusers.mfsplc.Configurator;
 
-public class SimView extends JPanel implements ActionListener, MouseListener, MouseMotionListener {
+public class SimView extends JPanel implements MouseListener, MouseMotionListener {
 	private Configurator configurator;
 	private SimController controller;
+	private Color cellColor;
 	private HashMap<Position, GridCell> cells;
 
 	public SimView(Configurator configurator, SimController controller) {
@@ -28,8 +31,10 @@ public class SimView extends JPanel implements ActionListener, MouseListener, Mo
 		this.configurator = configurator;
 		this.controller = controller;
 
+		cellColor = configurator.getCellColor();
+
 		setLayout(new GridBagLayout());
-		setBackground(configurator.getCellColor().darker());
+		setBackground(cellColor.darker());
 
 		cells = new HashMap<Position, GridCell>();
 
@@ -41,12 +46,9 @@ public class SimView extends JPanel implements ActionListener, MouseListener, Mo
 				gbc.gridy = y;
 				gbc.insets = new Insets(1, 1, 1, 1);
 
-				GridCell cell = new GridCell(x, y, configurator.getCellSize(), configurator.getCellColor());
+				GridCell cell = new GridCell(x, y, configurator.getCellSize(), cellColor);
 				cells.put(cell.pos, cell);
 
-//				cell.setText(Integer.valueOf(x).toString());
-
-				cell.addActionListener(this);
 				cell.addMouseListener(this);
 				cell.addMouseMotionListener(this);
 
@@ -87,26 +89,30 @@ public class SimView extends JPanel implements ActionListener, MouseListener, Mo
 	public void setCellSelected(Position pos, boolean selected) {
 		GridCell cell = cells.get(pos);
 		if (cell != null) {
-			cell.setSelected(selected);
+//			cell.setSelected(selected);
 		}
 	}
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
-		if (((GridCell) e.getSource()).isSelected())
-			((GridCell) e.getSource()).setBackground(Color.RED);
-		else {
-			((GridCell) e.getSource()).setBackground(Color.GREEN);
+	public void changeBackgroundColor() {
+		Color newColor = JColorChooser.showDialog(this.getParent(), "Set Background Color", cellColor);
+
+		if (newColor == null)
+			return;
+
+		Component[] cells = getComponents();
+
+		for (Component cell : cells) {
+			cell.setBackground(cellColor);
 		}
+		setBackground(cellColor.darker());
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
-		if (e.getClickCount() == 2 && !((GridCell) e.getComponent()).isSelected()) {
-			controller.createPlc(((GridCell) e.getComponent()).pos);
-		}
+//		if (e.getClickCount() == 2 && !((GridCell) e.getComponent()).isSelected()) {
+//			controller.createPlc(((GridCell) e.getComponent()).pos);
+//		}
 	}
 
 	@Override

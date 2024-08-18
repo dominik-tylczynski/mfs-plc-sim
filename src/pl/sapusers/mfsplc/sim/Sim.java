@@ -194,12 +194,23 @@ public class Sim extends JFrame {
 		JMenuItem mntmClearAllLogs = new JMenuItem("Clear All Logs");
 		mnEdit.add(mntmClearAllLogs);
 		
-		JSeparator separator = new JSeparator();
-		mnEdit.add(separator);
+		JMenu mnView = new JMenu("View");
+		menuBar.add(mnView);
+		
+		JMenuItem mntmBackgroundColor = new JMenuItem("Background Color");
+		mnView.add(mntmBackgroundColor);
+		mntmBackgroundColor.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			controller.getView().changeBackgroundColor();	
+			}
+		});	
+		
+		JSeparator separator_1 = new JSeparator();
+		mnView.add(separator_1);
 		
 		JMenuItem mntmZoomIn = new JMenuItem("Zoom In");
+		mnView.add(mntmZoomIn);
 		mntmZoomIn.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
-		mnEdit.add(mntmZoomIn);
 		mntmZoomIn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 			controller.getView().zoomIn();	
@@ -207,13 +218,19 @@ public class Sim extends JFrame {
 		});		
 		
 		JMenuItem mntmZoomOut = new JMenuItem("Zoom Out");
+		mnView.add(mntmZoomOut);
 		mntmZoomOut.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, InputEvent.CTRL_DOWN_MASK));
-		mnEdit.add(mntmZoomOut);
 		mntmZoomOut.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 			controller.getView().zoomOut();	
 			}
 		});	
+		
+		JSeparator separator_2 = new JSeparator();
+		mnView.add(separator_2);
+		
+		JMenuItem mntmRefreshView = new JMenuItem("Refresh View");
+		mnView.add(mntmRefreshView);
 		
 		
 		JMenu mnHelp = new JMenu("Help");
