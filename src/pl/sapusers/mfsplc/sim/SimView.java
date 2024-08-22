@@ -21,6 +21,7 @@ import pl.sapusers.mfsplc.Configurator;
 public class SimView extends JPanel implements MouseListener, MouseMotionListener {
 	public static final Border BORDER_UP = BorderFactory.createBevelBorder(BevelBorder.RAISED);
 	public static final Border BORDER_DOWN = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
+	public static final Border EMPTY_BORDER = BorderFactory.createEmptyBorder();
 
 	private Configurator configurator;
 	private SimController controller;
@@ -33,7 +34,7 @@ public class SimView extends JPanel implements MouseListener, MouseMotionListene
 		this.configurator = configurator;
 		this.controller = controller;
 
-		cellColor = configurator.getCellColor();
+		cellColor = controller.getModel().getBackgroundColor();
 
 		setLayout(new GridBagLayout());
 		setBackground(cellColor.darker());
@@ -91,16 +92,16 @@ public class SimView extends JPanel implements MouseListener, MouseMotionListene
 		else
 			cellColor = newColor;
 
-		Component[] cells = getComponents();
-
-		for (Component cell : cells) {
-			cell.setBackground(cellColor);
-		}
+		controller.paintBackground(cellColor);
 		setBackground(cellColor.darker());
 	}
 
 	public GridCell getCell(Position pos) {
 		return cells.get(pos);
+	}
+	
+	public HashMap<Position, GridCell> getCells() {
+		return cells;
 	}
 
 	@Override

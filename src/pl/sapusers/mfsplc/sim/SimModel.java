@@ -16,11 +16,16 @@ public class SimModel {
 
 	public SimModel(Configurator configurator) {
 		this.configurator = configurator;
+		this.backgroundColor = configurator.getCellColor();
 		this.plcs = new ArrayList<Plc>();
 	}
 
 	public void addPlc(Plc plc) {
 		plcs.add(plc);
+	}
+	
+	public void removePlc(Plc plc) {
+		plcs.remove(plc);
 	}
 
 	public Plc getPlc(Position pos) {
@@ -35,8 +40,12 @@ public class SimModel {
 		return plcs;
 	}
 	
-	public void setBackgrounColor(Color backgroundColor) {
+	public void setBackgroundColor(Color backgroundColor) {
 		this.backgroundColor = backgroundColor;
+	}
+	
+	public Color getBackgroundColor() {
+		return backgroundColor;
 	}
 	
 }

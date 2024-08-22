@@ -20,6 +20,9 @@ public class Plc {
 		this.color = color;
 	}	
 	
+	public boolean hasOneCell() {
+		return (cells.size() == 1 ? true : false);
+	}
 	
 	public Color getColor() {
 		return color;

@@ -21,6 +21,7 @@ public class GridCell extends JLabel {
 		this.size = size;
 
 		setBorder(BorderFactory.createEmptyBorder());
+		setBackground(cellColor);
 	}
 
 	@Override
