@@ -10,12 +10,19 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.HashMap;
 
+import javax.swing.BorderFactory;
 import javax.swing.JColorChooser;
 import javax.swing.JPanel;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.Border;
 
 import pl.sapusers.mfsplc.Configurator;
 
 public class SimView extends JPanel implements MouseListener, MouseMotionListener {
+	public static final Border BORDER_UP = BorderFactory.createBevelBorder(BevelBorder.RAISED);
+	public static final Border BORDER_DOWN = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
+	
+	
 	private Configurator configurator;
 	private SimController controller;
 	private Color cellColor;
@@ -92,6 +99,10 @@ public class SimView extends JPanel implements MouseListener, MouseMotionListene
 		setBackground(cellColor.darker());
 	}
 
+	public GridCell getCell(Position pos) {
+		return cells.get(pos);
+	}
+	
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
@@ -100,7 +111,7 @@ public class SimView extends JPanel implements MouseListener, MouseMotionListene
 			controller.handleMouseDoubleClick(((GridCell) e.getComponent()).pos);
 			break;
 		case 1:
-			controller.handleMouseClick(((GridCell) e.getComponent()).pos);
+			controller.handleMouseSingleClick(((GridCell) e.getComponent()).pos);
 			break;
 		}
 	}

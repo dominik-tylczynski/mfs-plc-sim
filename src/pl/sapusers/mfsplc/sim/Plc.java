@@ -12,8 +12,13 @@ public class Plc {
 	public Plc(Position pos) {
 		cells = new ArrayList<Position>();
 		cells.add(pos);
-		this.name = Integer.valueOf(pos.x).toString() + "-" + Integer.valueOf(pos.y).toString();
+		this.name = Integer.valueOf(pos.x).toString() + "-" + Integer.valueOf(pos.y).toString();  //TODO
 	}
+	
+	public Plc(Position pos, Color color) {
+		this(pos);
+		this.color = color;
+	}	
 	
 	
 	public Color getColor() {

@@ -19,8 +19,8 @@ public class SimModel {
 		this.plcs = new ArrayList<Plc>();
 	}
 
-	public void createPlc(Position pos) {
-		plcs.add(new Plc(pos));
+	public void addPlc(Plc plc) {
+		plcs.add(plc);
 	}
 
 	public Plc getPlc(Position pos) {

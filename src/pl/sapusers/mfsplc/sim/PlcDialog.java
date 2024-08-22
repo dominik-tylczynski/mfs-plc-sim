@@ -1,7 +1,6 @@
 package pl.sapusers.mfsplc.sim;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 
@@ -13,21 +12,12 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.FormSpecs;
-import com.jgoodies.forms.layout.RowSpec;
-
 public class PlcDialog extends JDialog {
 
 	private static final long serialVersionUID = 1L;
 	private final JPanel contentPanel = new JPanel();
 	private JTextField txtPlcName;
 	private JLabel lblPlcName;
-	private JLabel lblPlcColor;
-	private JLabel lblExecutionDelayms;
-	private JTextField txtPLCcolor;
-	private JTextField txtExecutionDelay;
 
 	/**
 	 * Launch the application.
@@ -50,57 +40,20 @@ public class PlcDialog extends JDialog {
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		contentPanel.setLayout(new FormLayout(new ColumnSpec[] {
-				FormSpecs.UNRELATED_GAP_COLSPEC,
-				ColumnSpec.decode("79px"),
-				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,
-				ColumnSpec.decode("114px"),},
-			new RowSpec[] {
-				FormSpecs.PARAGRAPH_GAP_ROWSPEC,
-				RowSpec.decode("21px"),
-				FormSpecs.UNRELATED_GAP_ROWSPEC,
-				RowSpec.decode("21px"),
-				FormSpecs.UNRELATED_GAP_ROWSPEC,
-				RowSpec.decode("21px"),}));
+		contentPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		{
 			lblPlcName = new JLabel("PLC Name:");
 			lblPlcName.setAlignmentY(0.0f);
 			lblPlcName.setHorizontalAlignment(SwingConstants.LEFT);
-			contentPanel.add(lblPlcName, "2, 2, fill, center");
+			contentPanel.add(lblPlcName);
 		}
 		{
 			txtPlcName = new JTextField();
 			lblPlcName.setLabelFor(txtPlcName);
 			txtPlcName.setSize(new Dimension(5, 21));
 			txtPlcName.setMaximumSize(new Dimension(5, 21));
-			contentPanel.add(txtPlcName, "4, 2, left, center");
+			contentPanel.add(txtPlcName);
 			txtPlcName.setColumns(10);
-		}
-		{
-			lblPlcColor = new JLabel("PLC Color:");
-			lblPlcColor.setHorizontalAlignment(SwingConstants.LEFT);
-			contentPanel.add(lblPlcColor, "2, 4, fill, center");
-		}
-		{
-			txtPLCcolor = new JTextField();
-			txtPLCcolor.setHorizontalAlignment(SwingConstants.LEFT);
-			txtPLCcolor.setEditable(false);
-			txtPLCcolor.setBackground(Color.RED);
-			contentPanel.add(txtPLCcolor, "4, 4, left, center");
-			txtPLCcolor.setColumns(5);
-		}
-		{
-			lblExecutionDelayms = new JLabel("Step Delay:");
-			lblExecutionDelayms.setToolTipText("");
-			lblExecutionDelayms.setHorizontalAlignment(SwingConstants.LEFT);
-			contentPanel.add(lblExecutionDelayms, "2, 6, fill, center");
-		}
-		{
-			txtExecutionDelay = new JTextField();
-			txtExecutionDelay.setToolTipText("in miliseconds");
-			lblExecutionDelayms.setLabelFor(txtExecutionDelay);
-			contentPanel.add(txtExecutionDelay, "4, 6, left, center");
-			txtExecutionDelay.setColumns(4);
 		}
 		{
 			JPanel buttonPane = new JPanel();
