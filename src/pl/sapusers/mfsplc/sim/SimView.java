@@ -21,8 +21,7 @@ import pl.sapusers.mfsplc.Configurator;
 public class SimView extends JPanel implements MouseListener, MouseMotionListener {
 	public static final Border BORDER_UP = BorderFactory.createBevelBorder(BevelBorder.RAISED);
 	public static final Border BORDER_DOWN = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
-	
-	
+
 	private Configurator configurator;
 	private SimController controller;
 	private Color cellColor;
@@ -102,7 +101,7 @@ public class SimView extends JPanel implements MouseListener, MouseMotionListene
 	public GridCell getCell(Position pos) {
 		return cells.get(pos);
 	}
-	
+
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
@@ -131,14 +130,11 @@ public class SimView extends JPanel implements MouseListener, MouseMotionListene
 	@Override
 	public void mouseEntered(MouseEvent e) {
 		// TODO Auto-generated method stub
-//		((GridCell) e.getComponent()).setBorder(BorderFactory.createLoweredSoftBevelBorder());
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
 		// TODO Auto-generated method stub
-//		((GridCell) e.getComponent()).setBorder(BorderFactory.createEmptyBorder());
-
 	}
 
 	@Override

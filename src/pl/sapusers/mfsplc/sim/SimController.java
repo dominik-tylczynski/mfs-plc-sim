@@ -8,13 +8,15 @@ import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import javax.swing.border.Border;
+
 import pl.sapusers.mfsplc.Configurator;
 
 public class SimController {
 	private SimView view;
 	private SimModel model;
 	private Configurator configurator;
-	private HashSet<Plc> selectedPlcs;
+	private HashSet<Plc> selectedPlcs = new HashSet<Plc>();
 
 	public SimController(Configurator configurator) {
 		this.configurator = configurator;
@@ -49,11 +51,16 @@ public class SimController {
 		Plc plc = model.getPlc(pos);
 
 		if (plc == null) {
+			if (selectedPlcs.size() == 0) {
 // create PLC
 // TO-DO call PLC dialog
-			createPlc(pos);
-			deselectPlc();
-			selectPlc(model.getPlc(pos));
+				deselectPlc();
+				createPlc(pos);
+			} else if (selectedPlcs.size() == 1) {
+				Plc selectedPlc = (Plc) selectedPlcs.toArray()[0];
+				selectedPlc.appendCell(pos);
+				paintPlc(selectedPlc);
+			}
 		} else {
 // change PLC
 
@@ -61,8 +68,15 @@ public class SimController {
 	}
 
 	public void paintPlc(Plc plc) {
+
+		Border border = (selectedPlcs.contains(plc) ? SimView.BORDER_DOWN : SimView.BORDER_UP);
+
 		for (int i = 0; i < plc.getCells().size(); i++) {
-			view.getCell(plc.getCells().get(i)).setText(Integer.valueOf(i + 1).toString());
+			GridCell cell = view.getCell(plc.getCells().get(i));
+			cell.setText(Integer.valueOf(i + 1).toString());
+			cell.setBackground(plc.getColor());
+			cell.setBorder(border);
+			cell.setToolTipText(plc.getName());
 		}
 	}
 
