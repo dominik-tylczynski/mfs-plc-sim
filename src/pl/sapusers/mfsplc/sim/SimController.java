@@ -1,18 +1,14 @@
 package pl.sapusers.mfsplc.sim;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.util.ArrayList;
 import java.util.HashSet;
 
 import javax.swing.border.Border;
 
 import pl.sapusers.mfsplc.Configurator;
 
-public class SimController {
+public class SimController implements MouseListener {
 	private SimView view;
 	private SimModel model;
 	private Configurator configurator;
@@ -52,11 +48,12 @@ public class SimController {
 
 		if (plc == null) {
 			if (selectedPlcs.size() == 0) {
-// create PLC
+				// create PLC
 // TO-DO call PLC dialog
 				deselectPlc();
 				createPlc(pos);
 			} else if (selectedPlcs.size() == 1) {
+				// add cell to PLC
 				Plc selectedPlc = (Plc) selectedPlcs.toArray()[0];
 				selectedPlc.appendCell(pos);
 				paintPlc(selectedPlc);
@@ -103,6 +100,57 @@ public class SimController {
 			deselectPlc(plc);
 			selectedPlcs.remove(plc);
 		}
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+
+		if (e.getClickCount() == 1 && e.getButton() == MouseEvent.BUTTON1) {
+			
+			Position pos = ((GridCell) e.getComponent()).pos;
+			Plc plc = model.getPlc(pos);
+
+			if (plc == null) {
+				if (selectedPlcs.size() == 0) {
+					// create PLC
+					// TO-DO call PLC dialog
+					deselectPlc();
+					createPlc(pos);
+				} else if (selectedPlcs.size() == 1) {
+					// add cell to PLC
+					Plc selectedPlc = (Plc) selectedPlcs.toArray()[0];
+					selectedPlc.appendCell(pos);
+					paintPlc(selectedPlc);
+				}
+			} else {
+// change PLC
+
+			}
+		}
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

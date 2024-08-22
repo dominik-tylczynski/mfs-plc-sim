@@ -52,6 +52,7 @@ public class SimView extends JPanel implements MouseListener, MouseMotionListene
 				cells.put(cell.pos, cell);
 
 				cell.addMouseListener(this);
+				cell.addMouseListener(controller);
 				cell.addMouseMotionListener(this);
 
 				add(cell, gbc);
@@ -105,14 +106,14 @@ public class SimView extends JPanel implements MouseListener, MouseMotionListene
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
-		switch (e.getClickCount()) {
-		case 2:
-			controller.handleMouseDoubleClick(((GridCell) e.getComponent()).pos);
-			break;
-		case 1:
-			controller.handleMouseSingleClick(((GridCell) e.getComponent()).pos);
-			break;
-		}
+//		switch (e.getClickCount()) {
+//		case 2:
+//			controller.handleMouseDoubleClick(((GridCell) e.getComponent()).pos);
+//			break;
+//		case 1:
+//			controller.handleMouseSingleClick(((GridCell) e.getComponent()).pos);
+//			break;
+//		}
 	}
 
 	@Override
