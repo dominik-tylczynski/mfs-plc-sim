@@ -187,35 +187,39 @@ public class Configurator {
 			return property.replaceFirst("[" + getFillCharacter() + "]++$", "");
 	}
 
-	public int getGridSize() {
-		return Integer.parseInt(getProperty("gridSize"));
+	public int getGridSizeX() {
+		return Integer.parseInt(getProperty("gridSize").substring(0, getProperty("gridSize").indexOf(",")));
 	}
-	
+
+	public int getGridSizeY() {
+		return Integer.parseInt(getProperty("gridSize").substring(getProperty("gridSize").indexOf(",") + 1,
+				getProperty("gridSize").length()));
+	}
+
 	public int getCellSize() {
 		return Integer.parseInt(getProperty("cellSize"));
 	}
-	
+
 	public int getZoomStep() {
 		return Integer.parseInt(getProperty("zoomStep"));
-	}	
-	
-	
+	}
+
 	public int getSimulationStepDelay() {
 		return Integer.parseInt(getProperty("simulationStepDelay"));
 	}
 
 	public Color getPlcColor() {
 		String[] styleParts = getProperty("plcColor").split(",");
-		
+
 		return new Color(Integer.parseInt(styleParts[0]), Integer.parseInt(styleParts[1]),
-				Integer.parseInt(styleParts[2]));		
-	}	
-	
+				Integer.parseInt(styleParts[2]));
+	}
+
 	public Color getCellColor() {
 		String[] styleParts = getProperty("cellColor").split(",");
-		
+
 		return new Color(Integer.parseInt(styleParts[0]), Integer.parseInt(styleParts[1]),
-				Integer.parseInt(styleParts[2]));		
-	}	
-	
+				Integer.parseInt(styleParts[2]));
+	}
+
 }

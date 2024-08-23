@@ -194,6 +194,45 @@ public class Sim extends JFrame {
 		JMenuItem mntmClearAllLogs = new JMenuItem("Clear All Logs");
 		mnEdit.add(mntmClearAllLogs);
 		
+		JSeparator separator = new JSeparator();
+		mnEdit.add(separator);
+		
+		JMenuItem mntmMoveUp = new JMenuItem("Move Up");
+		mntmMoveUp.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0));
+		mnEdit.add(mntmMoveUp);
+		mntmMoveUp.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			controller.handleMove(KeyEvent.VK_UP);	
+			}
+		});
+		
+		JMenuItem mntmMoveDown = new JMenuItem("Move Down");
+		mntmMoveDown.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0));
+		mnEdit.add(mntmMoveDown);
+		mntmMoveDown.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			controller.handleMove(KeyEvent.VK_DOWN);	
+			}
+		});
+		
+		JMenuItem mntmMoveLeft = new JMenuItem("Move Left");
+		mntmMoveLeft.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0));
+		mnEdit.add(mntmMoveLeft);
+		mntmMoveLeft.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			controller.handleMove(KeyEvent.VK_LEFT);	
+			}
+		});
+		
+		JMenuItem mntmMoveRight = new JMenuItem("Move Right");
+		mntmMoveRight.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0));
+		mnEdit.add(mntmMoveRight);
+		mntmMoveRight.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			controller.handleMove(KeyEvent.VK_RIGHT);	
+			}
+		});
+		
 		JMenu mnView = new JMenu("View");
 		menuBar.add(mnView);
 		
@@ -290,6 +329,7 @@ public class Sim extends JFrame {
 		
 		
 		simViewPane.setViewportView(controller.getView());
+		splitPane.setDividerLocation(500);
 		
 		JPanel TopPanel = new JPanel();
 		contentPanel.add(TopPanel, BorderLayout.NORTH);

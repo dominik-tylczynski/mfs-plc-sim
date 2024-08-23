@@ -30,7 +30,7 @@ public class SimModel {
 
 	public Plc getPlc(Position pos) {
 		for (Plc plc : plcs ) {
-			if (plc.containsCell(pos)) return plc;
+			if (plc.containsPosition(pos)) return plc;
 		}
 		
 		return null;

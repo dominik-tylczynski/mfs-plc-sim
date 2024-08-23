@@ -26,7 +26,8 @@ public class SimView extends JPanel implements MouseListener, MouseMotionListene
 	private Configurator configurator;
 	private SimController controller;
 	private Color cellColor;
-	private HashMap<Position, GridCell> cells;
+//	private HashMap<Position, GridCell> cells;
+	GridCell[][] cells; 
 
 	public SimView(Configurator configurator, SimController controller) {
 		super();
@@ -39,18 +40,19 @@ public class SimView extends JPanel implements MouseListener, MouseMotionListene
 		setLayout(new GridBagLayout());
 		setBackground(cellColor.darker());
 
-		cells = new HashMap<Position, GridCell>();
-
+//		cells = new HashMap<Position, GridCell>();
+		cells = new GridCell[configurator.getGridSizeX()][configurator.getGridSizeY()];
+		
 		GridBagConstraints gbc = new GridBagConstraints();
 
-		for (int x = 0; x < configurator.getGridSize(); x++) {
-			for (int y = 0; y < configurator.getGridSize(); y++) {
+		for (int x = 0; x < cells.length; x++) {
+			for (int y = 0; y < cells[x].length; y++) {
 				gbc.gridx = x;
 				gbc.gridy = y;
 				gbc.insets = new Insets(1, 1, 1, 1);
 
 				GridCell cell = new GridCell(x, y, configurator.getCellSize(), cellColor);
-				cells.put(cell.pos, cell);
+				cells[x][y] = cell;
 
 				cell.addMouseListener(this);
 				cell.addMouseListener(controller);
@@ -96,11 +98,15 @@ public class SimView extends JPanel implements MouseListener, MouseMotionListene
 		setBackground(cellColor.darker());
 	}
 
-	public GridCell getCell(Position pos) {
-		return cells.get(pos);
+	public GridCell getCell(int x, int y) {
+		return cells[x][y];
 	}
 	
-	public HashMap<Position, GridCell> getCells() {
+	public GridCell getCell(Position pos) {
+		return getCell(pos.x, pos.y);
+	}
+	
+	public GridCell[][] getCells() {
 		return cells;
 	}
 

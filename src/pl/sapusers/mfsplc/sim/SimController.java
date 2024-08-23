@@ -13,27 +13,14 @@ import javax.swing.border.Border;
 import pl.sapusers.mfsplc.Configurator;
 
 public class SimController implements MouseListener {
-	private SimView view;
-	private SimModel model;
 	private Configurator configurator;
+	private SimModel model;
 	private HashSet<Plc> selectedPlcs = new HashSet<Plc>();
+	private SimView view;
 
 	public SimController(Configurator configurator) {
 		this.configurator = configurator;
 		init();
-	}
-
-	public void init() {
-		model = new SimModel(configurator);
-		view = new SimView(configurator, this);
-	}
-
-	public SimView getView() {
-		return view;
-	}
-
-	public SimModel getModel() {
-		return model;
 	}
 
 	public void createPlc(Position pos) {
@@ -42,55 +29,10 @@ public class SimController implements MouseListener {
 		paintPlc(model.getPlc(pos));
 	}
 
-	public void handleMouseDoubleClick(Position pos) {
-
-	}
-
-	public void handleMouseSingleClick(Position pos) {
-		Plc plc = model.getPlc(pos);
-
-		if (plc == null) {
-			if (selectedPlcs.size() == 0) {
-				// create PLC
-// TO-DO call PLC dialog
-				deselectPlc();
-				createPlc(pos);
-			} else if (selectedPlcs.size() == 1) {
-				// add cell to PLC
-				Plc selectedPlc = (Plc) selectedPlcs.toArray()[0];
-				selectedPlc.appendCell(pos);
-				paintPlc(selectedPlc);
-			}
-		} else {
-// change PLC
-
+	public void deselectPlc() {
+		for (Plc plc : model.getPlc()) {
+			deselectPlc(plc);
 		}
-	}
-
-	public void paintPlc(Plc plc) {
-		Border border;
-		Color color;
-
-		if (selectedPlcs.contains(plc)) {
-			border = SimView.BORDER_DOWN;
-			color = plc.getColor().darker();
-		} else {
-			border = SimView.BORDER_UP;
-			color = plc.getColor();
-		}
-
-		for (int i = 0; i < plc.getCells().size(); i++) {
-			GridCell cell = view.getCell(plc.getCells().get(i));
-			cell.setText(Integer.valueOf(i + 1).toString());
-			cell.setBackground(color);
-			cell.setBorder(border);
-			cell.setToolTipText("PLC: " + plc.getName());
-		}
-	}
-
-	public void selectPlc(Plc plc) {
-		selectedPlcs.add(plc);
-		paintPlc(plc);
 	}
 
 	public void deselectPlc(Plc plc) {
@@ -98,10 +40,41 @@ public class SimController implements MouseListener {
 		paintPlc(plc);
 	}
 
-	public void deselectPlc() {
-		for (Plc plc : model.getPlc()) {
-			deselectPlc(plc);
-		}
+	public SimModel getModel() {
+		return model;
+	}
+
+	public SimView getView() {
+		return view;
+	}
+
+	public ArrayList<Position> getCells() {
+		ArrayList<Position> cells = new ArrayList<Position>();
+		
+		ArrayList<Plc> plcs = model.getPlc();
+		
+		for (Plc plc : plcs) 
+			cells.addAll(plc.getPosition());
+		
+		return cells;
+	} 
+	
+	public void handleMove(int dir) {
+		if (selectedPlcs.size() == 0) return;
+		
+		// TO-DO verify constraints
+		for (Plc plc : selectedPlcs)
+			plc.move(dir);
+		
+		paintBackground();
+		
+		for (Plc plc : selectedPlcs)
+			paintPlc(plc);
+	}
+	
+	public void init() {
+		model = new SimModel(configurator);
+		view = new SimView(configurator, this);
 	}
 
 	@Override
@@ -121,7 +94,7 @@ public class SimController implements MouseListener {
 				} else if (selectedPlcs.size() == 1) {
 					// add cell to PLC
 					Plc selectedPlc = (Plc) selectedPlcs.toArray()[0];
-					selectedPlc.appendCell(pos);
+					selectedPlc.appendPosition(pos);
 					paintPlc(selectedPlc);
 				}
 			} else {
@@ -137,11 +110,11 @@ public class SimController implements MouseListener {
 
 		if (e.getClickCount() == 1 && e.getButton() != MouseEvent.BUTTON1) {
 			if (plc != null) {
-				if (plc.hasOneCell()) {
+				if (plc.hasOnePosition()) {
 					selectedPlcs.remove(plc);
 					model.removePlc(plc);
 				} else {
-					plc.removeCell(pos);
+					plc.removePosition(pos);
 					paintPlc(plc);
 				}
 				paintBackground(pos);
@@ -151,34 +124,16 @@ public class SimController implements MouseListener {
 		}
 	}
 
-	public void paintBackground(Color color) {
-		model.setBackgroundColor(color);
-		paintBackground();
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+
 	}
 
-	public void paintBackground() {
-		ArrayList<Plc> plcs = model.getPlc();
-		HashSet<Position> occupied = new HashSet<Position>();
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
 
-		for (Plc plc : plcs) {
-			occupied.addAll(plc.getCells());
-		}
-
-		HashMap<Position, GridCell> cells = view.getCells();
-		for (Position pos : cells.keySet()) {
-			if (!occupied.contains(pos)) {
-				paintBackground(pos);
-			}
-		}
-	}
-
-	public void paintBackground(Position pos) {
-		GridCell cell = view.getCell(pos);
-
-		cell.setBackground(model.getBackgroundColor());
-		cell.setBorder(SimView.EMPTY_BORDER);
-		cell.setToolTipText(null);
-		cell.setText(null);
 	}
 
 	@Override
@@ -193,16 +148,65 @@ public class SimController implements MouseListener {
 
 	}
 
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
+	public void paintBackground() {
+		GridCell[][] cells = view.getCells();
+		
+		HashSet<Position> occupied = getOccupiedPositions();
 
+		for (int x = 0; x < cells.length; x++)
+			for (int y = 0; y < cells[x].length; y++)
+				if (!occupied.contains(cells[x][y].pos))
+					paintBackground(cells[x][y].pos);
 	}
 
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
+	public void paintBackground(Color color) {
+		model.setBackgroundColor(color);
+		paintBackground();
+	}
 
+	
+	public HashSet<Position> getOccupiedPositions() {
+		HashSet<Position> pos = new HashSet<Position>();
+		
+		for (Plc plc : model.getPlc())
+			pos.addAll(plc.getPosition());
+		return pos;
+			
+	}
+	
+	public void paintBackground(Position pos) {
+		GridCell cell = view.getCell(pos.x, pos.y);
+
+		cell.setBackground(model.getBackgroundColor());
+		cell.setBorder(SimView.EMPTY_BORDER);
+		cell.setToolTipText(null);
+		cell.setText(null);
+	}
+
+	public void paintPlc(Plc plc) {
+		Border border;
+		Color color;
+
+		if (selectedPlcs.contains(plc)) {
+			border = SimView.BORDER_DOWN;
+			color = plc.getColor().darker();
+		} else {
+			border = SimView.BORDER_UP;
+			color = plc.getColor();
+		}
+
+		for (int i = 0; i < plc.getPosition().size(); i++) {
+			GridCell cell = view.getCell(plc.getPosition().get(i));
+			cell.setText(Integer.valueOf(i + 1).toString());
+			cell.setBackground(color);
+			cell.setBorder(border);
+			cell.setToolTipText("PLC: " + plc.getName());
+		}
+	}
+
+	public void selectPlc(Plc plc) {
+		selectedPlcs.add(plc);
+		paintPlc(plc);
 	}
 
 }

@@ -1,29 +1,56 @@
 package pl.sapusers.mfsplc.sim;
 
 import java.awt.Color;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
 public class Plc {
 // saved attributes
-	private ArrayList<Position> cells;
+	private ArrayList<Position> positions;
 	private Color color;
 	private String name;
-	
+
 	public Plc(Position pos) {
-		cells = new ArrayList<Position>();
-		cells.add(pos);
-		this.name = Integer.valueOf(pos.x).toString() + "-" + Integer.valueOf(pos.y).toString();  //TODO
+		positions = new ArrayList<Position>();
+		positions.add(new Position(pos.x, pos.y));
+		this.name = Integer.valueOf(pos.x).toString() + "-" + Integer.valueOf(pos.y).toString(); // TO-DO
 	}
-	
+
 	public Plc(Position pos, Color color) {
 		this(pos);
 		this.color = color;
-	}	
-	
-	public boolean hasOneCell() {
-		return (cells.size() == 1 ? true : false);
 	}
-	
+
+	public boolean hasOnePosition() {
+		return (positions.size() == 1 ? true : false);
+	}
+
+	public void move(int dir) {
+		switch (dir) {
+		case KeyEvent.VK_UP:
+			for (Position pos : positions)
+				pos.y--;
+
+			break;
+
+		case KeyEvent.VK_DOWN:
+			for (Position pos : positions)
+				pos.y++;
+			
+			break;
+		case KeyEvent.VK_LEFT:
+			for (Position pos : positions)
+				pos.x--;
+			
+			break;
+		case KeyEvent.VK_RIGHT:
+			for (Position pos : positions)
+				pos.x++;
+			
+			break;
+		}
+	}
+
 	public Color getColor() {
 		return color;
 	}
@@ -31,29 +58,29 @@ public class Plc {
 	public void setColor(Color color) {
 		this.color = color;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
 
-	public void appendCell(Position pos) {
-		if (!cells.contains(pos))
-			cells.add(pos);
+	public void appendPosition(Position pos) {
+		if (!positions.contains(pos))
+			positions.add(pos);
 	}
-	
-	public void removeCell(Position pos) {
-		cells.remove(pos);
+
+	public void removePosition(Position pos) {
+		positions.remove(pos);
 	}
-	
-	public boolean containsCell(Position pos) {
-		return cells.contains(pos);
+
+	public boolean containsPosition(Position pos) {
+		return positions.contains(pos);
 	}
-	
+
 	public int indexOf(Position pos) {
-		return cells.indexOf(pos);
+		return positions.indexOf(pos);
 	}
-	
-	public ArrayList<Position> getCells() {
-		return cells;
+
+	public ArrayList<Position> getPosition() {
+		return positions;
 	}
 }
