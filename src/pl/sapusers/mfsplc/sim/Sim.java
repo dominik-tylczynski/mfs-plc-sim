@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -149,8 +150,8 @@ public class Sim extends JFrame {
 	public Sim(Configurator configurator) {
 		this.configurator = configurator;
 
-		 controller = new SimController(configurator);
-		
+		controller = new SimController(configurator);
+
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 823, 558);
 
@@ -193,85 +194,85 @@ public class Sim extends JFrame {
 
 		JMenuItem mntmClearAllLogs = new JMenuItem("Clear All Logs");
 		mnEdit.add(mntmClearAllLogs);
-		
+
 		JSeparator separator = new JSeparator();
 		mnEdit.add(separator);
-		
+
 		JMenuItem mntmMoveUp = new JMenuItem("Move Up");
-		mntmMoveUp.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0));
+		mntmMoveUp.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_DOWN_MASK));
 		mnEdit.add(mntmMoveUp);
 		mntmMoveUp.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-			controller.handleMove(KeyEvent.VK_UP);	
+				controller.handleMove(KeyEvent.VK_UP);
 			}
 		});
-		
+
 		JMenuItem mntmMoveDown = new JMenuItem("Move Down");
-		mntmMoveDown.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0));
+		mntmMoveDown.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_DOWN_MASK));
 		mnEdit.add(mntmMoveDown);
 		mntmMoveDown.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-			controller.handleMove(KeyEvent.VK_DOWN);	
+				controller.handleMove(KeyEvent.VK_DOWN);
 			}
 		});
-		
+
 		JMenuItem mntmMoveLeft = new JMenuItem("Move Left");
-		mntmMoveLeft.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0));
+		mntmMoveLeft.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_DOWN_MASK));
 		mnEdit.add(mntmMoveLeft);
 		mntmMoveLeft.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-			controller.handleMove(KeyEvent.VK_LEFT);	
+				controller.handleMove(KeyEvent.VK_LEFT);
 			}
 		});
-		
+
 		JMenuItem mntmMoveRight = new JMenuItem("Move Right");
-		mntmMoveRight.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0));
+		mntmMoveRight.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_DOWN_MASK));
 		mnEdit.add(mntmMoveRight);
 		mntmMoveRight.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-			controller.handleMove(KeyEvent.VK_RIGHT);	
+				controller.handleMove(KeyEvent.VK_RIGHT);
 			}
 		});
-		
+
 		JMenu mnView = new JMenu("View");
 		menuBar.add(mnView);
-		
+
 		JMenuItem mntmBackgroundColor = new JMenuItem("Background Color");
 		mnView.add(mntmBackgroundColor);
 		mntmBackgroundColor.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-			controller.getView().changeBackgroundColor();	
+				controller.getView().changeBackgroundColor();
 			}
-		});	
-		
+		});
+
 		JSeparator separator_1 = new JSeparator();
 		mnView.add(separator_1);
-		
+
 		JMenuItem mntmZoomIn = new JMenuItem("Zoom In");
 		mnView.add(mntmZoomIn);
-		mntmZoomIn.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
+		mntmZoomIn.setAccelerator(
+				KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
 		mntmZoomIn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-			controller.getView().zoomIn();	
+				controller.getView().zoomIn();
 			}
-		});		
-		
+		});
+
 		JMenuItem mntmZoomOut = new JMenuItem("Zoom Out");
 		mnView.add(mntmZoomOut);
 		mntmZoomOut.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, InputEvent.CTRL_DOWN_MASK));
 		mntmZoomOut.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-			controller.getView().zoomOut();	
+				controller.getView().zoomOut();
 			}
-		});	
-		
+		});
+
 		JSeparator separator_2 = new JSeparator();
 		mnView.add(separator_2);
-		
+
 		JMenuItem mntmRefreshView = new JMenuItem("Refresh View");
 		mnView.add(mntmRefreshView);
-		
-		
+
 		JMenu mnHelp = new JMenu("Help");
 		menuBar.add(mnHelp);
 
@@ -321,16 +322,15 @@ public class Sim extends JFrame {
 		TelegramPanel.add(scrollPane, BorderLayout.CENTER);
 
 		textTelegrams = new TelegramsTextPane(this.configurator, scrollPane);
-		
+
 		JScrollPane simViewPane = new JScrollPane();
 		simViewPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		simViewPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 		splitPane.setRightComponent(simViewPane);
-		
-		
+
 		simViewPane.setViewportView(controller.getView());
 		splitPane.setDividerLocation(500);
-		
+
 		JPanel TopPanel = new JPanel();
 		contentPanel.add(TopPanel, BorderLayout.NORTH);
 		TopPanel.setLayout(new BorderLayout(0, 0));

@@ -65,7 +65,7 @@ public class Plc {
 
 	public void appendPosition(Position pos) {
 		if (!positions.contains(pos))
-			positions.add(pos);
+			positions.add(new Position(pos.x, pos.y));
 	}
 
 	public void removePosition(Position pos) {
