@@ -2,6 +2,7 @@ package pl.sapusers.mfsplc.sim;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -17,8 +18,10 @@ import javax.swing.BorderFactory;
 import javax.swing.JColorChooser;
 import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
 import pl.sapusers.mfsplc.Configurator;
@@ -31,6 +34,7 @@ public class SimView extends JTable {
 	private Configurator configurator;
 	private SimController controller;
 	private Color cellColor;
+	private int cellSize;
 	GridCell[][] cells;
 
 	public SimView(Configurator configurator, SimController controller) {
@@ -40,8 +44,9 @@ public class SimView extends JTable {
 		this.controller = controller;
 
 		cellColor = controller.getModel().getBackgroundColor();
+		cellSize = configurator.getCellSize();
 
-//		setLayout(new GridBagLayout());
+// 		setLayout(new GridBagLayout());
 //		setBackground(cellColor.darker());
 
 		cells = new GridCell[configurator.getGridSizeX()][configurator.getGridSizeY()];
@@ -60,42 +65,68 @@ public class SimView extends JTable {
 //				add(cell, gbc);
 //			}
 //		}
-		
+
 		DefaultTableModel tableModel = new DefaultTableModel(configurator.getGridSizeX(), configurator.getGridSizeY());
 		setModel(tableModel);
-		setRowHeight(configurator.getCellSize());
-		
-		for(int x = 0; x < tableModel.getColumnCount(); x++) {
-			getColumnModel().getColumn(x).setPreferredWidth(configurator.getCellSize());
-		}
-		
+		setRowMargin(0);
+		resize();
+
 		setShowGrid(true);
 		setGridColor(controller.getModel().getBackgroundColor().darker());
 		setTableHeader(null);
-		
-	};
+		setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+//		setSelectionModel( (ListSelectionModel) new ListSelectionModel() {
+//			public boolean isSelectionEmpty() { return true; }
+//			public boolean isSelectedIndex(int index) { return false; }
+//			public int getMinSelectionIndex() { return -1; }
+//			public int getMaxSelectionIndex() { return -1; }
+//			public int getLeadSelectionIndex() { return -1; }
+//			public int getAnchorSelectionIndex() { return -1; }
+//			public void setSelectionInterval(int index0, int index1) { }
+//			public void setLeadSelectionIndex(int index) { }
+//			public void setAnchorSelectionIndex(int index) { }
+//			public void addSelectionInterval(int index0, int index1) { }
+//			public void insertIndexInterval(int index, int length, boolean before) { }
+//			public void clearSelection() { }
+//			public void removeSelectionInterval(int index0, int index1) { }
+//			public void removeIndexInterval(int index0, int index1) { }
+//			public void setSelectionMode(int selectionMode) { }
+//			public int getSelectionMode() { return SINGLE_SELECTION; }
+//			public void addListSelectionListener(ListSelectionListener lsl) { }
+//			public void removeListSelectionListener(ListSelectionListener lsl) { }
+//			public void setValueIsAdjusting(boolean valueIsAdjusting) { }
+//			public boolean getValueIsAdjusting() { return false; }
+//		});
+
+		setColumnSelectionAllowed(true);
+		setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+
+	}
 
 	public void zoomIn() {
-		int max = getComponentCount();
-
-		for (int i = 0; i < max; i++) {
-			GridCell cell = (GridCell) getComponent(i);
-			cell.size += configurator.getZoomStep();
-		}
-		revalidate();
-		repaint();
+		cellSize = getRowHeight() + configurator.getZoomStep();
+		resize();
 	}
 
 	public void zoomOut() {
-		int max = getComponentCount();
+		cellSize = (cellSize > configurator.getZoomStep() ? cellSize -= configurator.getZoomStep() : 1);
+		cellSize = (cellSize > configurator.getZoomStep() ? cellSize -= configurator.getZoomStep() : 1);
+		resize();
+		zoomIn();
+	}
 
-		for (int i = 0; i < max; i++) {
-			GridCell cell = (GridCell) getComponent(i);
-			if (cell.size > configurator.getZoomStep())
-				cell.size -= configurator.getZoomStep();
+	private void resize() {
+		System.out.println(cellSize);
+		
+		for (int x = 0; x < getModel().getColumnCount(); x++) {
+			getColumnModel().getColumn(x).setPreferredWidth(cellSize);
+			getColumnModel().getColumn(x).setMaxWidth(cellSize);
+			getColumnModel().getColumn(x).setMinWidth(cellSize);
+			getColumnModel().getColumn(x).setWidth(cellSize);
 		}
-		revalidate();
-		repaint();
+		
+		setRowHeight(cellSize);
 	}
 
 	public void changeBackgroundColor() {
@@ -120,5 +151,10 @@ public class SimView extends JTable {
 
 	public GridCell[][] getCells() {
 		return cells;
+	}
+
+	@Override
+	public Dimension getPreferredScrollableViewportSize() {
+		return new Dimension(getColumnCount() * getRowHeight(), getRowCount() * getRowHeight());
 	}
 }
