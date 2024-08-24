@@ -22,8 +22,8 @@ public class Plc {
 		this.color = color;
 	}
 
-	public boolean hasOnePosition() {
-		return (positions.size() == 1 ? true : false);
+	public int getPositionsCount() {
+		return positions.size();
 	}
 
 	public void move(int dir) {
