@@ -1,29 +1,20 @@
 package pl.sapusers.mfsplc.sim;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.Font;
 import java.awt.Point;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.util.HashMap;
-import java.util.Date;
 
 import javax.swing.BorderFactory;
 import javax.swing.JColorChooser;
 import javax.swing.JComponent;
-import javax.swing.JPanel;
+import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -38,14 +29,16 @@ public class SimView extends JTable {
 				int row, int column) {
 
 			Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-
-			controller.decorateCell((JComponent) cell, row, column, isSelected);
+			setHorizontalAlignment( JLabel.CENTER );
+			setFont(getFont().deriveFont(Font.BOLD));
+			controller.decorateCell((JComponent) cell, column, row, isSelected);
 
 			return cell;
 
 		}
 
 	}
+
 	public static final Border BORDER_DOWN = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
 	public static final Border BORDER_UP = BorderFactory.createBevelBorder(BevelBorder.RAISED);
 
@@ -78,10 +71,7 @@ public class SimView extends JTable {
 		addMouseListener(new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				// Get the point where the mouse was clicked
 				Point point = e.getPoint();
-
-				// Determine the row and column of the clicked cell
 				int row = rowAtPoint(point);
 				int column = columnAtPoint(point);
 
@@ -92,6 +82,8 @@ public class SimView extends JTable {
 				Object value = getValueAt(row, column);
 				System.out.println("Value of clicked cell: " + value);
 
+				controller.mouseClicked(e, row, column);
+				
 			}
 
 			@Override
@@ -155,6 +147,12 @@ public class SimView extends JTable {
 	}
 
 	@Override
+	public boolean isCellEditable(int row, int column) {
+		// all cells false
+		return false;
+	}
+
+	@Override
 	public Dimension getPreferredScrollableViewportSize() {
 		return new Dimension(getColumnCount() * getRowHeight(), getRowCount() * getRowHeight());
 	}
@@ -171,13 +169,10 @@ public class SimView extends JTable {
 	@Override
 	public String getToolTipText(MouseEvent e) {
 		Point point = e.getPoint();
-		
-		int x = columnAtPoint(point);
-		int y = rowAtPoint(point);
-		
-		return Integer.valueOf(x) + " " + Integer.valueOf(y);
+
+		return controller.getToolTipText(columnAtPoint(point), rowAtPoint(point));
 	}
-	
+
 	public void zoomOut() {
 		cellSize = (cellSize > configurator.getZoomStep() ? cellSize -= configurator.getZoomStep() : 1);
 		cellSize = (cellSize > configurator.getZoomStep() ? cellSize -= configurator.getZoomStep() : 1);

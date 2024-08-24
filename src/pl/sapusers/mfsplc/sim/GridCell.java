@@ -1,14 +1,11 @@
 package pl.sapusers.mfsplc.sim;
 
 import java.awt.Color;
-import java.awt.Point;
 import java.awt.Dimension;
+import java.awt.Point;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
-import javax.swing.JToggleButton;
-import javax.swing.border.BevelBorder;
-import javax.swing.border.EtchedBorder;
 
 public class GridCell extends JLabel {
 	public Point pos;

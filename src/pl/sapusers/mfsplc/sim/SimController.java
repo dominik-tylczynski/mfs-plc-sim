@@ -48,8 +48,8 @@ public class SimController implements MouseListener {
 				cell.setBackground(plc.getColor().darker());
 			} else {
 				cell.setBorder(SimView.BORDER_UP);
-				cell.setBackground(plc.getColor());		
-			}	
+				cell.setBackground(plc.getColor());
+			}
 		}
 	}
 
@@ -105,10 +105,10 @@ public class SimController implements MouseListener {
 		view = new SimView(configurator, this);
 	}
 
-	@Override
-	public void mouseClicked(MouseEvent e) {
+	public void mouseClicked(MouseEvent e, int row, int column) {
 
-		Point pos = ((GridCell) e.getComponent()).pos;
+		Point pos = new Point(column, row);
+
 		Plc plc = model.getPlc(pos);
 
 		if (e.getClickCount() == 1 && e.getButton() == MouseEvent.BUTTON1) {
@@ -145,6 +145,52 @@ public class SimController implements MouseListener {
 
 			return;
 		}
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+
+//		Point point =  e.getPoint();
+//		int row = rowAtPoint(point);
+//		int column = columnAtPoint(point);
+//		
+//		
+//		Plc plc = model.getPlc(pos);
+//
+//		if (e.getClickCount() == 1 && e.getButton() == MouseEvent.BUTTON1) {
+//			if (plc == null) {
+//				if (selectedPlcs.size() == 0) {
+//					// create PLC
+//					// TODO call PLC dialog
+//					deselectPlc();
+//					createPlc(pos);
+//				} else if (selectedPlcs.size() == 1) {
+//					// add cell to PLC
+//					appendPosition((Plc) selectedPlcs.toArray()[0], pos);
+//				}
+//			} else {
+//				if (selectedPlcs.contains(plc))
+//					deselectPlc(plc);
+//				else
+//					selectPlc(plc);
+//
+//				paintPlc(plc);
+//			}
+//			return;
+//		}
+//
+//		if (e.getClickCount() == 1 && e.getButton() != MouseEvent.BUTTON1) {
+//			if (plc != null) {
+//				if (plc.getPositionsCount() == 1) {
+//					// TODO add warning dialog
+//					removePosition(plc, pos);
+//				} else {
+//					removePosition(plc, pos);
+//				}
+//			}
+//
+//			return;
+//		}
 	}
 
 	@Override
@@ -190,8 +236,18 @@ public class SimController implements MouseListener {
 	private void appendPosition(Plc plc, Point pos) {
 		plc.appendPosition(pos);
 		occupiedCells.add(pos);
+		pos2Plc.put(pos, plc);
 		paintPlc(plc);
 		view.repaint();
+	}
+
+	public String getToolTipText(int x, int y) {
+		Plc plc = pos2Plc.get(new Point(x, y));
+
+		if (plc == null)
+			return null;
+		else
+			return "PLC: " + plc.getName();
 	}
 
 	private void removePosition(Plc plc, Point pos) {
