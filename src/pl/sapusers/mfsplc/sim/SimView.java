@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -16,13 +17,16 @@ import java.util.Date;
 
 import javax.swing.BorderFactory;
 import javax.swing.JColorChooser;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 
 import pl.sapusers.mfsplc.Configurator;
 
@@ -33,9 +37,24 @@ public class SimView extends JTable {
 
 	private Configurator configurator;
 	private SimController controller;
-	private Color cellColor;
 	private int cellSize;
 	GridCell[][] cells;
+
+	private class CellRenderer extends DefaultTableCellRenderer {
+
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+				int row, int column) {
+
+			Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+			controller.decorateCell((JComponent) cell, row, column, isSelected);
+
+			return cell;
+
+		}
+
+	}
 
 	public SimView(Configurator configurator, SimController controller) {
 		super();
@@ -43,38 +62,58 @@ public class SimView extends JTable {
 		this.configurator = configurator;
 		this.controller = controller;
 
-		cellColor = controller.getModel().getBackgroundColor();
 		cellSize = configurator.getCellSize();
-
-// 		setLayout(new GridBagLayout());
-//		setBackground(cellColor.darker());
 
 		cells = new GridCell[configurator.getGridSizeX()][configurator.getGridSizeY()];
 
-//		GridBagConstraints gbc = new GridBagConstraints();
-//		for (int x = 0; x < cells.length; x++) {
-//			for (int y = 0; y < cells[x].length; y++) {
-//				gbc.gridx = x;
-//				gbc.gridy = y;
-//				gbc.insets = new Insets(1, 1, 1, 1);
-//
-//				GridCell cell = new GridCell(x, y, configurator.getCellSize(), cellColor);
-//				cells[x][y] = cell;
-//
-//				cell.addMouseListener(controller);
-//				add(cell, gbc);
-//			}
-//		}
-
 		DefaultTableModel tableModel = new DefaultTableModel(configurator.getGridSizeX(), configurator.getGridSizeY());
 		setModel(tableModel);
-		setRowMargin(0);
 		resize();
 
 		setShowGrid(true);
 		setGridColor(controller.getModel().getBackgroundColor().darker());
 		setTableHeader(null);
 		setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		setDefaultRenderer(Object.class, (TableCellRenderer) new CellRenderer());
+		addMouseListener(new MouseListener() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				// Get the point where the mouse was clicked
+				Point point = e.getPoint();
+
+				// Determine the row and column of the clicked cell
+				int row = rowAtPoint(point);
+				int column = columnAtPoint(point);
+
+				// Print the cell that was clicked
+				System.out.println("Clicked cell at row " + row + ", column " + column);
+
+				// Optionally, get the value of the clicked cell
+				Object value = getValueAt(row, column);
+				System.out.println("Value of clicked cell: " + value);
+
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				return;
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				return;
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				return;
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				return;
+			}
+		});
 
 //		setSelectionModel( (ListSelectionModel) new ListSelectionModel() {
 //			public boolean isSelectionEmpty() { return true; }
@@ -117,36 +156,26 @@ public class SimView extends JTable {
 	}
 
 	private void resize() {
-		System.out.println(cellSize);
-		
+
 		for (int x = 0; x < getModel().getColumnCount(); x++) {
 			getColumnModel().getColumn(x).setPreferredWidth(cellSize);
 			getColumnModel().getColumn(x).setMaxWidth(cellSize);
 			getColumnModel().getColumn(x).setMinWidth(cellSize);
 			getColumnModel().getColumn(x).setWidth(cellSize);
 		}
-		
+
 		setRowHeight(cellSize);
 	}
 
 	public void changeBackgroundColor() {
-		Color newColor = JColorChooser.showDialog(this.getParent(), "Set Background Color", cellColor);
+		controller.setBackgroundColor(
+				JColorChooser.showDialog(this.getParent(), "Set Background Color", controller.getBackgroundColor()));
 
-		if (newColor == null)
-			return;
-		else
-			cellColor = newColor;
-
-		controller.paintBackground(cellColor);
-		setBackground(cellColor.darker());
+		repaint();
 	}
 
-	public GridCell getCell(int x, int y) {
-		return cells[x][y];
-	}
-
-	public GridCell getCell(Position pos) {
-		return getCell(pos.x, pos.y);
+	public void setCellText(String text, int x, int y) {
+		getModel().setValueAt(text, y, x);
 	}
 
 	public GridCell[][] getCells() {

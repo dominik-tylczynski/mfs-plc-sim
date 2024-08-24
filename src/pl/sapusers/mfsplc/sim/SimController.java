@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import javax.swing.JComponent;
 import javax.swing.border.Border;
 
 import pl.sapusers.mfsplc.Configurator;
@@ -16,6 +17,7 @@ public class SimController implements MouseListener {
 	private Configurator configurator;
 	private SimModel model;
 	private HashSet<Plc> selectedPlcs = new HashSet<Plc>();
+	private HashSet<Position> occupiedCells = new HashSet<Position>();
 	private SimView view;
 
 	public SimController(Configurator configurator) {
@@ -35,6 +37,11 @@ public class SimController implements MouseListener {
 		}
 	}
 
+	public void decorateCell(JComponent cell, int x, int y, boolean isSelected) {
+		cell.setBorder(SimView.BORDER_DOWN);
+		cell.setBackground(model.getBackgroundColor());
+	}
+
 	public void deselectPlc(Plc plc) {
 		selectedPlcs.remove(plc);
 		paintPlc(plc);
@@ -50,28 +57,29 @@ public class SimController implements MouseListener {
 
 	public ArrayList<Position> getCells() {
 		ArrayList<Position> cells = new ArrayList<Position>();
-		
+
 		ArrayList<Plc> plcs = model.getPlc();
-		
-		for (Plc plc : plcs) 
+
+		for (Plc plc : plcs)
 			cells.addAll(plc.getPosition());
-		
+
 		return cells;
-	} 
-	
+	}
+
 	public void handleMove(int dir) {
-		if (selectedPlcs.size() == 0) return;
-		
+		if (selectedPlcs.size() == 0)
+			return;
+
 		// TO-DO verify constraints
 		for (Plc plc : selectedPlcs)
 			plc.move(dir);
-		
-		paintBackground();
-		
+
+//		paintBackground();
+
 		for (Plc plc : selectedPlcs)
 			paintPlc(plc);
 	}
-	
+
 	public void init() {
 		model = new SimModel(configurator);
 		view = new SimView(configurator, this);
@@ -90,7 +98,7 @@ public class SimController implements MouseListener {
 					// TO-DO call PLC dialog
 					deselectPlc();
 					createPlc(pos);
-					paintBackground();
+//					paintBackground();
 				} else if (selectedPlcs.size() == 1) {
 					// add cell to PLC
 					Plc selectedPlc = (Plc) selectedPlcs.toArray()[0];
@@ -117,7 +125,7 @@ public class SimController implements MouseListener {
 					plc.removePosition(pos);
 					paintPlc(plc);
 				}
-				paintBackground(pos);
+//				paintBackground(pos);
 			}
 
 			return;
@@ -148,65 +156,24 @@ public class SimController implements MouseListener {
 
 	}
 
-	public void paintBackground() {
-		GridCell[][] cells = view.getCells();
-		
-		HashSet<Position> occupied = getOccupiedPositions();
-
-		for (int x = 0; x < cells.length; x++)
-			for (int y = 0; y < cells[x].length; y++)
-				if (!occupied.contains(cells[x][y].pos))
-					paintBackground(cells[x][y].pos);
-	}
-
-	public void paintBackground(Color color) {
-		model.setBackgroundColor(color);
-		paintBackground();
-	}
-
-	
-	public HashSet<Position> getOccupiedPositions() {
-		HashSet<Position> pos = new HashSet<Position>();
-		
-		for (Plc plc : model.getPlc())
-			pos.addAll(plc.getPosition());
-		return pos;
-			
-	}
-	
-	public void paintBackground(Position pos) {
-		GridCell cell = view.getCell(pos.x, pos.y);
-
-		cell.setBackground(model.getBackgroundColor());
-		cell.setBorder(SimView.EMPTY_BORDER);
-		cell.setToolTipText(null);
-		cell.setText(null);
-	}
-
 	public void paintPlc(Plc plc) {
-		Border border;
-		Color color;
-
-		if (selectedPlcs.contains(plc)) {
-			border = SimView.BORDER_DOWN;
-			color = plc.getColor().darker();
-		} else {
-			border = SimView.BORDER_UP;
-			color = plc.getColor();
-		}
-
 		for (int i = 0; i < plc.getPosition().size(); i++) {
-			GridCell cell = view.getCell(plc.getPosition().get(i));
-			cell.setText(Integer.valueOf(i + 1).toString());
-			cell.setBackground(color);
-			cell.setBorder(border);
-			cell.setToolTipText("PLC: " + plc.getName());
+			view.setCellText(Integer.valueOf(i + 1).toString(), plc.getPosition().get(i).x, plc.getPosition().get(i).y);
 		}
 	}
 
 	public void selectPlc(Plc plc) {
 		selectedPlcs.add(plc);
 		paintPlc(plc);
+	}
+
+	public void setBackgroundColor(Color color) {
+		if (color != null)
+			model.setBackgroundColor(color);
+	}
+
+	public Color getBackgroundColor() {
+		return model.getBackgroundColor();
 	}
 
 }
