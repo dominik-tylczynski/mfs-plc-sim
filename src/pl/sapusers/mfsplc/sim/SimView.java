@@ -16,12 +16,14 @@ import java.util.Date;
 import javax.swing.BorderFactory;
 import javax.swing.JColorChooser;
 import javax.swing.JPanel;
+import javax.swing.JTable;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
+import javax.swing.table.DefaultTableModel;
 
 import pl.sapusers.mfsplc.Configurator;
 
-public class SimView extends JPanel {
+public class SimView extends JTable {
 	public static final Border BORDER_UP = BorderFactory.createBevelBorder(BevelBorder.RAISED);
 	public static final Border BORDER_DOWN = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
 	public static final Border EMPTY_BORDER = BorderFactory.createEmptyBorder();
@@ -29,7 +31,6 @@ public class SimView extends JPanel {
 	private Configurator configurator;
 	private SimController controller;
 	private Color cellColor;
-//	private HashMap<Position, GridCell> cells;
 	GridCell[][] cells;
 
 	public SimView(Configurator configurator, SimController controller) {
@@ -40,26 +41,38 @@ public class SimView extends JPanel {
 
 		cellColor = controller.getModel().getBackgroundColor();
 
-		setLayout(new GridBagLayout());
-		setBackground(cellColor.darker());
+//		setLayout(new GridBagLayout());
+//		setBackground(cellColor.darker());
 
-//		cells = new HashMap<Position, GridCell>();
 		cells = new GridCell[configurator.getGridSizeX()][configurator.getGridSizeY()];
 
-		GridBagConstraints gbc = new GridBagConstraints();
-		for (int x = 0; x < cells.length; x++) {
-			for (int y = 0; y < cells[x].length; y++) {
-				gbc.gridx = x;
-				gbc.gridy = y;
-				gbc.insets = new Insets(1, 1, 1, 1);
-
-				GridCell cell = new GridCell(x, y, configurator.getCellSize(), cellColor);
-				cells[x][y] = cell;
-
-				cell.addMouseListener(controller);
-				add(cell, gbc);
-			}
+//		GridBagConstraints gbc = new GridBagConstraints();
+//		for (int x = 0; x < cells.length; x++) {
+//			for (int y = 0; y < cells[x].length; y++) {
+//				gbc.gridx = x;
+//				gbc.gridy = y;
+//				gbc.insets = new Insets(1, 1, 1, 1);
+//
+//				GridCell cell = new GridCell(x, y, configurator.getCellSize(), cellColor);
+//				cells[x][y] = cell;
+//
+//				cell.addMouseListener(controller);
+//				add(cell, gbc);
+//			}
+//		}
+		
+		DefaultTableModel tableModel = new DefaultTableModel(configurator.getGridSizeX(), configurator.getGridSizeY());
+		setModel(tableModel);
+		setRowHeight(configurator.getCellSize());
+		
+		for(int x = 0; x < tableModel.getColumnCount(); x++) {
+			getColumnModel().getColumn(x).setPreferredWidth(configurator.getCellSize());
 		}
+		
+		setShowGrid(true);
+		setGridColor(controller.getModel().getBackgroundColor().darker());
+		setTableHeader(null);
+		
 	};
 
 	public void zoomIn() {
