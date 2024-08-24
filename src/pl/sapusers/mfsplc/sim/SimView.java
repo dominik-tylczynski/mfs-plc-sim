@@ -31,15 +31,6 @@ import javax.swing.table.TableCellRenderer;
 import pl.sapusers.mfsplc.Configurator;
 
 public class SimView extends JTable {
-	public static final Border BORDER_UP = BorderFactory.createBevelBorder(BevelBorder.RAISED);
-	public static final Border BORDER_DOWN = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
-	public static final Border EMPTY_BORDER = BorderFactory.createEmptyBorder();
-
-	private Configurator configurator;
-	private SimController controller;
-	private int cellSize;
-	GridCell[][] cells;
-
 	private class CellRenderer extends DefaultTableCellRenderer {
 
 		@Override
@@ -55,6 +46,15 @@ public class SimView extends JTable {
 		}
 
 	}
+	public static final Border BORDER_DOWN = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
+	public static final Border BORDER_UP = BorderFactory.createBevelBorder(BevelBorder.RAISED);
+
+	public static final Border EMPTY_BORDER = BorderFactory.createEmptyBorder();
+	private int cellSize;
+	private Configurator configurator;
+	private SimController controller;
+
+	GridCell[][] cells;
 
 	public SimView(Configurator configurator, SimController controller) {
 		super();
@@ -95,22 +95,22 @@ public class SimView extends JTable {
 			}
 
 			@Override
-			public void mousePressed(MouseEvent e) {
-				return;
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				return;
-			}
-
-			@Override
 			public void mouseEntered(MouseEvent e) {
 				return;
 			}
 
 			@Override
 			public void mouseExited(MouseEvent e) {
+				return;
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				return;
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
 				return;
 			}
 		});
@@ -143,11 +143,41 @@ public class SimView extends JTable {
 
 	}
 
+	public void changeBackgroundColor() {
+		controller.setBackgroundColor(
+				JColorChooser.showDialog(this.getParent(), "Set Background Color", controller.getBackgroundColor()));
+
+		repaint();
+	}
+
+	public GridCell[][] getCells() {
+		return cells;
+	}
+
+	@Override
+	public Dimension getPreferredScrollableViewportSize() {
+		return new Dimension(getColumnCount() * getRowHeight(), getRowCount() * getRowHeight());
+	}
+
+	public void setCellText(String text, int x, int y) {
+		getModel().setValueAt(text, y, x);
+	}
+
 	public void zoomIn() {
 		cellSize = getRowHeight() + configurator.getZoomStep();
 		resize();
 	}
 
+	@Override
+	public String getToolTipText(MouseEvent e) {
+		Point point = e.getPoint();
+		
+		int x = columnAtPoint(point);
+		int y = rowAtPoint(point);
+		
+		return Integer.valueOf(x) + " " + Integer.valueOf(y);
+	}
+	
 	public void zoomOut() {
 		cellSize = (cellSize > configurator.getZoomStep() ? cellSize -= configurator.getZoomStep() : 1);
 		cellSize = (cellSize > configurator.getZoomStep() ? cellSize -= configurator.getZoomStep() : 1);
@@ -165,25 +195,5 @@ public class SimView extends JTable {
 		}
 
 		setRowHeight(cellSize);
-	}
-
-	public void changeBackgroundColor() {
-		controller.setBackgroundColor(
-				JColorChooser.showDialog(this.getParent(), "Set Background Color", controller.getBackgroundColor()));
-
-		repaint();
-	}
-
-	public void setCellText(String text, int x, int y) {
-		getModel().setValueAt(text, y, x);
-	}
-
-	public GridCell[][] getCells() {
-		return cells;
-	}
-
-	@Override
-	public Dimension getPreferredScrollableViewportSize() {
-		return new Dimension(getColumnCount() * getRowHeight(), getRowCount() * getRowHeight());
 	}
 }

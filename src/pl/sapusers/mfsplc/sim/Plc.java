@@ -1,22 +1,23 @@
 package pl.sapusers.mfsplc.sim;
 
 import java.awt.Color;
+import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
 public class Plc {
 // saved attributes
-	private ArrayList<Position> positions;
+	private ArrayList<Point> positions;
 	private Color color;
 	private String name;
 
-	public Plc(Position pos) {
-		positions = new ArrayList<Position>();
-		positions.add(new Position(pos.x, pos.y));
+	public Plc(Point pos) {
+		positions = new ArrayList<Point>();
+		positions.add(new Point(pos.x, pos.y));
 		this.name = Integer.valueOf(pos.x).toString() + "-" + Integer.valueOf(pos.y).toString(); // TO-DO
 	}
 
-	public Plc(Position pos, Color color) {
+	public Plc(Point pos, Color color) {
 		this(pos);
 		this.color = color;
 	}
@@ -28,23 +29,23 @@ public class Plc {
 	public void move(int dir) {
 		switch (dir) {
 		case KeyEvent.VK_UP:
-			for (Position pos : positions)
+			for (Point pos : positions)
 				pos.y--;
 
 			break;
 
 		case KeyEvent.VK_DOWN:
-			for (Position pos : positions)
+			for (Point pos : positions)
 				pos.y++;
 			
 			break;
 		case KeyEvent.VK_LEFT:
-			for (Position pos : positions)
+			for (Point pos : positions)
 				pos.x--;
 			
 			break;
 		case KeyEvent.VK_RIGHT:
-			for (Position pos : positions)
+			for (Point pos : positions)
 				pos.x++;
 			
 			break;
@@ -63,24 +64,24 @@ public class Plc {
 		return name;
 	}
 
-	public void appendPosition(Position pos) {
+	public void appendPosition(Point pos) {
 		if (!positions.contains(pos))
-			positions.add(new Position(pos.x, pos.y));
+			positions.add(new Point(pos.x, pos.y));
 	}
 
-	public void removePosition(Position pos) {
+	public void removePosition(Point pos) {
 		positions.remove(pos);
 	}
 
-	public boolean containsPosition(Position pos) {
+	public boolean containsPosition(Point pos) {
 		return positions.contains(pos);
 	}
 
-	public int indexOf(Position pos) {
+	public int indexOf(Point pos) {
 		return positions.indexOf(pos);
 	}
 
-	public ArrayList<Position> getPosition() {
+	public ArrayList<Point> getPosition() {
 		return positions;
 	}
 }

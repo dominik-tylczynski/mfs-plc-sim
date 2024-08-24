@@ -45,7 +45,6 @@ public class test {
 			System.out.println(handshakeMetaData);
 			System.out.println(handshake);
 		} catch (IllegalArgumentException | JCoException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

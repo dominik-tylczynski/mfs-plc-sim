@@ -1,6 +1,7 @@
 package pl.sapusers.mfsplc.sim;
 
 import java.awt.Color;
+import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
@@ -16,8 +17,8 @@ import pl.sapusers.mfsplc.Configurator;
 public class SimController implements MouseListener {
 	private Configurator configurator;
 	private SimModel model;
+	private HashSet<Point> occupiedCells = new HashSet<Point>();
 	private HashSet<Plc> selectedPlcs = new HashSet<Plc>();
-	private HashSet<Position> occupiedCells = new HashSet<Position>();
 	private SimView view;
 
 	public SimController(Configurator configurator) {
@@ -25,16 +26,11 @@ public class SimController implements MouseListener {
 		init();
 	}
 
-	public void createPlc(Position pos) {
+	public void createPlc(Point pos) {
 		model.addPlc(new Plc(pos, configurator.getPlcColor()));
 		selectPlc(model.getPlc(pos));
 		paintPlc(model.getPlc(pos));
-	}
-
-	public void deselectPlc() {
-		for (Plc plc : model.getPlc()) {
-			deselectPlc(plc);
-		}
+		view.repaint();
 	}
 
 	public void decorateCell(JComponent cell, int x, int y, boolean isSelected) {
@@ -42,9 +38,29 @@ public class SimController implements MouseListener {
 		cell.setBackground(model.getBackgroundColor());
 	}
 
+	public void deselectPlc() {
+		selectedPlcs.clear();
+		view.repaint();
+	}
+
 	public void deselectPlc(Plc plc) {
 		selectedPlcs.remove(plc);
-		paintPlc(plc);
+		view.repaint();
+	}
+
+	public Color getBackgroundColor() {
+		return model.getBackgroundColor();
+	}
+
+	public ArrayList<Point> getCells() {
+		ArrayList<Point> cells = new ArrayList<Point>();
+
+		ArrayList<Plc> plcs = model.getPlc();
+
+		for (Plc plc : plcs)
+			cells.addAll(plc.getPosition());
+
+		return cells;
 	}
 
 	public SimModel getModel() {
@@ -53,17 +69,6 @@ public class SimController implements MouseListener {
 
 	public SimView getView() {
 		return view;
-	}
-
-	public ArrayList<Position> getCells() {
-		ArrayList<Position> cells = new ArrayList<Position>();
-
-		ArrayList<Plc> plcs = model.getPlc();
-
-		for (Plc plc : plcs)
-			cells.addAll(plc.getPosition());
-
-		return cells;
 	}
 
 	public void handleMove(int dir) {
@@ -88,7 +93,7 @@ public class SimController implements MouseListener {
 	@Override
 	public void mouseClicked(MouseEvent e) {
 
-		Position pos = ((GridCell) e.getComponent()).pos;
+		Point pos = ((GridCell) e.getComponent()).pos;
 		Plc plc = model.getPlc(pos);
 
 		if (e.getClickCount() == 1 && e.getButton() == MouseEvent.BUTTON1) {
@@ -170,10 +175,6 @@ public class SimController implements MouseListener {
 	public void setBackgroundColor(Color color) {
 		if (color != null)
 			model.setBackgroundColor(color);
-	}
-
-	public Color getBackgroundColor() {
-		return model.getBackgroundColor();
 	}
 
 }

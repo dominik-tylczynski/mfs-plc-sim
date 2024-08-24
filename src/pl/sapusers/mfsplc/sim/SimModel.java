@@ -1,6 +1,7 @@
 package pl.sapusers.mfsplc.sim;
 
 import java.awt.Color;
+import java.awt.Point;
 import java.util.ArrayList;
 
 import pl.sapusers.mfsplc.Configurator;
@@ -28,7 +29,7 @@ public class SimModel {
 		plcs.remove(plc);
 	}
 
-	public Plc getPlc(Position pos) {
+	public Plc getPlc(Point pos) {
 		for (Plc plc : plcs ) {
 			if (plc.containsPosition(pos)) return plc;
 		}
