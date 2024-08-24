@@ -2,6 +2,7 @@ package pl.sapusers.mfsplc.sim;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -38,6 +39,7 @@ import org.apache.logging.log4j.Logger;
 
 import pl.sapusers.mfsplc.Configurator;
 import javax.swing.JSeparator;
+import java.awt.FlowLayout;
 
 @SuppressWarnings("serial")
 public class Sim extends JFrame {
@@ -53,6 +55,7 @@ public class Sim extends JFrame {
 	private JTextField textPort;
 	private JToggleButton tglAutoHandshake;
 	private JButton btnSend;
+	private JScrollPane simViewScrollPane;
 
 	class TcpIpMonitor implements Runnable {
 		@Override
@@ -118,6 +121,10 @@ public class Sim extends JFrame {
 		System.out.println("  2. properties file with MfsSim configuration");
 	}
 
+	public void addSimView() {
+		simViewScrollPane.setViewportView(controller.getView());
+	}
+
 	/**
 	 * Launch the application.
 	 */
@@ -135,7 +142,7 @@ public class Sim extends JFrame {
 						printUsage();
 						System.exit(0);
 					}
-
+					frame.addSimView();
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -323,12 +330,10 @@ public class Sim extends JFrame {
 
 		textTelegrams = new TelegramsTextPane(this.configurator, scrollPane);
 
-		JScrollPane simViewPane = new JScrollPane();
-		simViewPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		simViewPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-		splitPane.setRightComponent(simViewPane);
-
-		simViewPane.setViewportView(controller.getView());
+		simViewScrollPane = new JScrollPane();
+		simViewScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		simViewScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+		splitPane.setRightComponent(simViewScrollPane);
 		splitPane.setDividerLocation(500);
 
 		JPanel TopPanel = new JPanel();
