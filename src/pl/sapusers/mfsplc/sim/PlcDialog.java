@@ -1,76 +1,57 @@
 package pl.sapusers.mfsplc.sim;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
+import javax.swing.*;
+import java.awt.*;
 
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
+public class PlcDialog {
 
-public class PlcDialog extends JDialog {
+    public static void main(String[] args) {
+        // Create a panel to hold all the fields and labels
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5); // Adds padding between elements
+        gbc.anchor = GridBagConstraints.WEST; // Align labels and fields to the left
 
-	private static final long serialVersionUID = 1L;
-	private final JPanel contentPanel = new JPanel();
-	private JTextField txtPlcName;
-	private JLabel lblPlcName;
+        // Add a label and text field for "Name"
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(new JLabel("Name:"), gbc);
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		try {
-			PlcDialog dialog = new PlcDialog();
-			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			dialog.setVisible(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+        gbc.gridx = 1;
+        gbc.weightx = 0; // Prevent horizontal stretching
+        JTextField nameField = new JTextField(10); // Shorter field (10 columns)
+        panel.add(nameField, gbc);
 
-	/**
-	 * Create the dialog.
-	 */
-	public PlcDialog() {
-		setBounds(100, 100, 450, 300);
-		getContentPane().setLayout(new BorderLayout());
-		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		contentPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-		{
-			lblPlcName = new JLabel("PLC Name:");
-			lblPlcName.setAlignmentY(0.0f);
-			lblPlcName.setHorizontalAlignment(SwingConstants.LEFT);
-			contentPanel.add(lblPlcName);
-		}
-		{
-			txtPlcName = new JTextField();
-			lblPlcName.setLabelFor(txtPlcName);
-			txtPlcName.setSize(new Dimension(5, 21));
-			txtPlcName.setMaximumSize(new Dimension(5, 21));
-			contentPanel.add(txtPlcName);
-			txtPlcName.setColumns(10);
-		}
-		{
-			JPanel buttonPane = new JPanel();
-			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-			getContentPane().add(buttonPane, BorderLayout.SOUTH);
-			{
-				JButton okButton = new JButton("OK");
-				okButton.setActionCommand("OK");
-				buttonPane.add(okButton);
-				getRootPane().setDefaultButton(okButton);
-			}
-			{
-				JButton cancelButton = new JButton("Cancel");
-				cancelButton.setActionCommand("Cancel");
-				buttonPane.add(cancelButton);
-			}
-		}
-	}
+        // Add a label and text field for "Email"
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        panel.add(new JLabel("Email:"), gbc);
 
+        gbc.gridx = 1;
+        JTextField emailField = new JTextField(20); // Longer field (20 columns)
+        panel.add(emailField, gbc);
+
+        // Add a label and text field for "Phone"
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        panel.add(new JLabel("Phone:"), gbc);
+
+        gbc.gridx = 1;
+        JTextField phoneField = new JTextField(15); // Medium field (15 columns)
+        panel.add(phoneField, gbc);
+
+     // Show dialog
+        int result = JOptionPane.showConfirmDialog(null, panel, "Enter Information", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            // Do something with the input
+            String name = nameField.getText();
+            String email = emailField.getText();
+            String phone = phoneField.getText();
+
+            System.out.println("Name: " + name);
+            System.out.println("Email: " + email);
+            System.out.println("Phone: " + phone);
+        }
+    }
 }
