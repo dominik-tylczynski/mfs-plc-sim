@@ -21,6 +21,7 @@ import javax.swing.table.TableCellRenderer;
 
 import pl.sapusers.mfsplc.Configurator;
 
+@SuppressWarnings("serial")
 public class SimView extends JTable {
 	private class CellRenderer extends DefaultTableCellRenderer {
 
@@ -47,8 +48,6 @@ public class SimView extends JTable {
 	private Configurator configurator;
 	private SimController controller;
 
-	GridCell[][] cells;
-
 	public SimView(Configurator configurator, SimController controller) {
 		super();
 
@@ -56,8 +55,6 @@ public class SimView extends JTable {
 		this.controller = controller;
 
 		cellSize = configurator.getCellSize();
-
-		cells = new GridCell[configurator.getGridSizeX()][configurator.getGridSizeY()];
 
 		DefaultTableModel tableModel = new DefaultTableModel(configurator.getGridSizeX(), configurator.getGridSizeY());
 		setModel(tableModel);
@@ -140,10 +137,6 @@ public class SimView extends JTable {
 				JColorChooser.showDialog(this.getParent(), "Set Background Color", controller.getBackgroundColor()));
 
 		repaint();
-	}
-
-	public GridCell[][] getCells() {
-		return cells;
 	}
 
 	@Override
